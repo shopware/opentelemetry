@@ -1,0 +1,39 @@
+{
+    "name": "frosh/opentelemetry-auto-shopware",
+    "description": "OpenTelemetry auto-instrumentation for Shopware",
+    "keywords": [
+        "opentelemetry",
+        "otel",
+        "open-telemetry",
+        "tracing",
+        "shopware",
+        "instrumentation"
+    ],
+    "type": "library",
+    "license": "Apache-2.0",
+    "minimum-stability": "dev",
+    "require": {
+        "php": "^8.0",
+        "ext-opentelemetry": "*",
+        "open-telemetry/api": "^1.0.0beta10",
+        "open-telemetry/sem-conv": "^1.22",
+        "symfony/http-kernel": "*",
+        "symfony/http-client-contracts": "*"
+    },
+    "suggest": {
+        "open-telemetry/opentelemetry-logger-monolog": "Monolog logger for OpenTelemetry"
+    },
+    "autoload": {
+        "psr-4": {
+            "Frosh\\OpenTelemetry\\": "src/"
+        },
+        "files": [
+            "_register.php"
+        ]
+    },
+    "config": {
+        "allow-plugins": {
+            "php-http/discovery": false
+        }
+    }
+}
