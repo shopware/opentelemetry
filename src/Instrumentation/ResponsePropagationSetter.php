@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Frosh\OpenTelemetry\Instrumentation;
+namespace Shopware\OpenTelemetry\Instrumentation;
 
 use function assert;
 use OpenTelemetry\Context\Propagation\PropagationSetterInterface;

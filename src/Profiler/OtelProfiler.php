@@ -1,6 +1,6 @@
 <?php
 
-namespace Frosh\OpenTelemetry\Profiler;
+namespace Shopware\OpenTelemetry\Profiler;
 
 use OpenTelemetry\API\Globals;
 use OpenTelemetry\API\Trace\TracerInterface;

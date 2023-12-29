@@ -1,5 +1,6 @@
 {
-    "name": "frosh/opentelemetry-auto-shopware",
+    "name": "shopware/opentelemetry-auto-shopware",
+    "version": "0.1.0",
     "description": "OpenTelemetry auto-instrumentation for Shopware",
     "keywords": [
         "opentelemetry",
@@ -25,7 +26,7 @@
     },
     "autoload": {
         "psr-4": {
-            "Frosh\\OpenTelemetry\\": "src/"
+            "Shopware\\OpenTelemetry\\": "src/"
         },
         "files": [
             "_register.php"

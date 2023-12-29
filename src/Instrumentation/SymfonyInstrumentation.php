@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Frosh\OpenTelemetry\Instrumentation;
+namespace Shopware\OpenTelemetry\Instrumentation;
 
 use OpenTelemetry\API\Globals;
 use OpenTelemetry\API\Instrumentation\CachedInstrumentation;

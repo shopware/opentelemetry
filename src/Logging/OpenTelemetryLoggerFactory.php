@@ -1,6 +1,6 @@
 <?php
 
-namespace Frosh\OpenTelemetry\Logging;
+namespace Shopware\OpenTelemetry\Logging;
 
 use Monolog\Level;
 use OpenTelemetry\API\Globals;

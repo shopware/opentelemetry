@@ -1,6 +1,6 @@
 <?php
 
-namespace Frosh\OpenTelemetry\Instrumentation;
+namespace Shopware\OpenTelemetry\Instrumentation;
 
 use OpenTelemetry\API\Instrumentation\CachedInstrumentation;
 use OpenTelemetry\API\Trace\Span;

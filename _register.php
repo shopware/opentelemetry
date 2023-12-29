@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-use Frosh\OpenTelemetry\Instrumentation\DALInstrumentation;
-use Frosh\OpenTelemetry\Instrumentation\HttpClientInstrumentation;
-use Frosh\OpenTelemetry\Instrumentation\SymfonyInstrumentation;
+use Shopware\OpenTelemetry\Instrumentation\DALInstrumentation;
+use Shopware\OpenTelemetry\Instrumentation\HttpClientInstrumentation;
+use Shopware\OpenTelemetry\Instrumentation\SymfonyInstrumentation;
 use OpenTelemetry\SDK\Sdk;
 
 if (class_exists(Sdk::class) && Sdk::isInstrumentationDisabled(SymfonyInstrumentation::NAME) === true) {
