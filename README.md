@@ -8,7 +8,7 @@
 ## Installation
 
 ```bash
-composer require shopware/opentelemetry-auto-shopware
+composer require shopware/opentelemetry
 ```
 
 ## Configuration

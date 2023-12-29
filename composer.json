@@ -1,5 +1,5 @@
 {
-    "name": "shopware/opentelemetry-auto-shopware",
+    "name": "shopware/opentelemetry",
     "version": "0.1.0",
     "description": "OpenTelemetry auto-instrumentation for Shopware",
     "keywords": [
