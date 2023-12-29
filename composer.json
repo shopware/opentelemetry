@@ -22,7 +22,9 @@
         "symfony/http-client-contracts": "*"
     },
     "suggest": {
-        "open-telemetry/opentelemetry-logger-monolog": "Monolog logger for OpenTelemetry"
+        "open-telemetry/opentelemetry-logger-monolog": "Monolog logger for OpenTelemetry",
+        "open-telemetry/transport-grpc": "gRPC transport for OpenTelemetry",
+        "open-telemetry/exporter-otlp": "OTLP exporter for OpenTelemetry"
     },
     "autoload": {
         "psr-4": {
