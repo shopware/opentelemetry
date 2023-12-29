@@ -56,3 +56,20 @@ $value = Profiler::trace('<name>', function () {
     return $myFunction();
 });
 ```
+
+## Forward logs to OpenTelemetry
+
+You can forward logs to OpenTelemetry with the following configuration:
+
+```yaml
+# config/packages/opentelemetry.yaml
+
+monolog:
+    handlers:
+        main:
+            type: service
+            id: monolog.handler.open_telemetry
+        elasticsearch:
+            type: service
+            id: monolog.handler.open_telemetry
+```

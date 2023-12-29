@@ -27,8 +27,6 @@ final class SymfonyInstrumentation
 
     public static function register(): void
     {
-        $instrumentation = new CachedInstrumentation('io.opentelemetry.contrib.php.symfony');
-
         hook(
             HttpKernel::class,
             'handle',
@@ -39,10 +37,9 @@ final class SymfonyInstrumentation
                 string $function,
                 ?string $filename,
                 ?int $lineno,
-            ) use ($instrumentation): array {
+            ): array {
                 $request = ($params[0] instanceof Request) ? $params[0] : null;
-                /** @psalm-suppress ArgumentTypeCoercion */
-                $builder = $instrumentation
+                $builder = (new CachedInstrumentation('io.opentelemetry.contrib.php.symfony'))
                     ->tracer()
                     ->spanBuilder(sprintf('%s', $request?->getMethod() ?? 'unknown'))
                     ->setSpanKind(SpanKind::KIND_SERVER)

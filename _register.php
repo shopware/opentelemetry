@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Shopware\OpenTelemetry\Instrumentation\ConnectionInstrumentation;
 use Shopware\OpenTelemetry\Instrumentation\DALInstrumentation;
 use Shopware\OpenTelemetry\Instrumentation\HttpClientInstrumentation;
 use Shopware\OpenTelemetry\Instrumentation\SymfonyInstrumentation;
@@ -20,3 +21,4 @@ if (extension_loaded('opentelemetry') === false) {
 SymfonyInstrumentation::register();
 HttpClientInstrumentation::register();
 DALInstrumentation::register();
+ConnectionInstrumentation::register();

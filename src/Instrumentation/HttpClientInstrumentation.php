@@ -20,8 +20,6 @@ final class HttpClientInstrumentation
 {
     public static function register(): void
     {
-        $instrumentation = new CachedInstrumentation('io.opentelemetry.contrib.php.symfony_http');
-
         hook(
             HttpClientInterface::class,
             'request',
@@ -32,9 +30,8 @@ final class HttpClientInstrumentation
                 string $function,
                 ?string $filename,
                 ?int $lineno,
-            ) use ($instrumentation): array {
-                /** @psalm-suppress ArgumentTypeCoercion */
-                $builder = $instrumentation
+            ) : array {
+                $builder = (new CachedInstrumentation('io.opentelemetry.contrib.php.symfony_http'))
                     ->tracer()
                     ->spanBuilder(\sprintf('%s', $params[0]))
                     ->setSpanKind(SpanKind::KIND_CLIENT)

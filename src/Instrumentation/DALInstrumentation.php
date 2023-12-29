@@ -17,8 +17,6 @@ final class DALInstrumentation
 {
     public static function register(): void
     {
-        $instrumentation = new CachedInstrumentation('io.opentelemetry.contrib.php.shopware');
-
         hook(
             EntityRepository::class,
             'search',
@@ -29,9 +27,9 @@ final class DALInstrumentation
                 string $function,
                 ?string $filename,
                 ?int $lineno,
-            ) use($instrumentation) {
+            ) {
                 $parent = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 3);
-                $builder = $instrumentation
+                $builder = (new CachedInstrumentation('io.opentelemetry.contrib.php.shopware'))
                     ->tracer()
                     ->spanBuilder($repository->getDefinition()->getEntityName() . '::search')
                     ->setSpanKind(SpanKind::KIND_SERVER)
