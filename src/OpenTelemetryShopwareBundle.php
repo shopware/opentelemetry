@@ -14,7 +14,7 @@ class OpenTelemetryShopwareBundle extends Bundle
     {
         $container
             ->register(OtelProfiler::class)
-            ->addTag('shopware.profiler', ['integration' => 'Otel']);
+            ->addTag('shopware.profiler', ['integration' => 'OpenTelemetry']);
 
         if (ContainerBuilder::willBeAvailable('open-telemetry/opentelemetry-logger-monolog', Handler::class, [])) {
             $container
