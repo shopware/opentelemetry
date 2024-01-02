@@ -10,7 +10,6 @@ use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
 use OpenTelemetry\SemConv\TraceAttributes;
-use Shopware\Core\Framework\DataAbstractionLayer\Search\EntitySearchResult;
 use Throwable;
 
 use function OpenTelemetry\Instrumentation\hook;
@@ -44,16 +43,15 @@ final class ConnectionInstrumentation
                     $spanTitle .= explode(' ', $query, 2)[0];
                 }
 
-                $parent = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 6);
                 $builder = (new CachedInstrumentation('io.opentelemetry.contrib.php.shopware'))
                     ->tracer()
                     ->spanBuilder($spanTitle)
                     ->setSpanKind(SpanKind::KIND_SERVER)
                     ->setAttribute(TraceAttributes::DB_STATEMENT, $query)
-                    ->setAttribute(TraceAttributes::CODE_FUNCTION, $parent[5]['function'])
-                    ->setAttribute(TraceAttributes::CODE_NAMESPACE, $parent[5]['class'])
-                    ->setAttribute(TraceAttributes::CODE_FILEPATH, $parent[5]['file'])
-                    ->setAttribute(TraceAttributes::CODE_LINENO, $parent[5]['line']);
+                    ->setAttribute(TraceAttributes::CODE_FUNCTION, $function)
+                    ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
+                    ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
+                    ->setAttribute(TraceAttributes::CODE_LINENO, $lineno);
 
                 $parent = Context::getCurrent();
 

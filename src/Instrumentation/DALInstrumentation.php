@@ -29,15 +29,14 @@ final class DALInstrumentation
                 ?string $filename,
                 ?int $lineno,
             ) {
-                $parent = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 3);
                 $builder = (new CachedInstrumentation('io.opentelemetry.contrib.php.shopware'))
                     ->tracer()
                     ->spanBuilder($repository->getDefinition()->getEntityName() . '::search')
                     ->setSpanKind(SpanKind::KIND_SERVER)
-                    ->setAttribute(TraceAttributes::CODE_FUNCTION, $parent[2]['function'])
-                    ->setAttribute(TraceAttributes::CODE_NAMESPACE, $parent[2]['class'])
-                    ->setAttribute(TraceAttributes::CODE_FILEPATH, $parent[2]['file'])
-                    ->setAttribute(TraceAttributes::CODE_LINENO, $parent[2]['line']);
+                    ->setAttribute(TraceAttributes::CODE_FUNCTION, $function)
+                    ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
+                    ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
+                    ->setAttribute(TraceAttributes::CODE_LINENO, $lineno);
 
                 $parent = Context::getCurrent();
 
@@ -79,15 +78,14 @@ final class DALInstrumentation
                 ?string $filename,
                 ?int $lineno,
             ) {
-                $parent = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 3);
                 $builder = (new CachedInstrumentation('io.opentelemetry.contrib.php.shopware'))
                     ->tracer()
                     ->spanBuilder($repository->getDefinition()->getEntityName() . '::aggregate')
                     ->setSpanKind(SpanKind::KIND_SERVER)
-                    ->setAttribute(TraceAttributes::CODE_FUNCTION, $parent[2]['function'])
-                    ->setAttribute(TraceAttributes::CODE_NAMESPACE, $parent[2]['class'])
-                    ->setAttribute(TraceAttributes::CODE_FILEPATH, $parent[2]['file'])
-                    ->setAttribute(TraceAttributes::CODE_LINENO, $parent[2]['line']);
+                    ->setAttribute(TraceAttributes::CODE_FUNCTION, $function)
+                    ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
+                    ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
+                    ->setAttribute(TraceAttributes::CODE_LINENO, $lineno);
 
                 $parent = Context::getCurrent();
 
