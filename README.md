@@ -42,7 +42,7 @@ To enable tracing for Shopware, you need to add the following config:
 shopware:
     profiler:
         integrations:
-            - Otel
+            - OpenTelemetry
 ```
 
 ## Adding custom spans
