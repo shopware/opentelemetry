@@ -5,3 +5,6 @@ help: # Show help for each of the Makefile recipes.
 
 cs-fixer: # Run cs-fixer
 	docker run --rm -v $(current_dir):$(current_dir) -w $(current_dir) shyim/php-cs-fixer --rules @PER-CS2.0,@PER-CS2.0:risky --allow-risky=yes .
+
+phpstan: # Run phpstan
+	docker run --rm -v $(current_dir):$(current_dir) -w $(current_dir) shyim/phpstan:latest analyse -c phpstan.neon.dist --debug

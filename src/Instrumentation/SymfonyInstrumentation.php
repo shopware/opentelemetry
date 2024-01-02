@@ -83,6 +83,7 @@ final class SymfonyInstrumentation
 
                 $request = ($params[0] instanceof Request) ? $params[0] : null;
                 if (null !== $request) {
+                    /** @var string|null $routeName */
                     $routeName = $request->attributes->get('_route', '');
 
                     if ('' !== $routeName) {

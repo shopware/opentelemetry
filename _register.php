@@ -12,9 +12,7 @@ if (class_exists(Sdk::class) && Sdk::isInstrumentationDisabled(SymfonyInstrument
     return;
 }
 
-if (extension_loaded('opentelemetry') === false) {
-    trigger_error('The opentelemetry extension must be loaded in order to autoload the OpenTelemetry Symfony auto-instrumentation', E_USER_WARNING);
-
+if (str_contains($_SERVER['SCRIPT_NAME'], 'phpstan')) {
     return;
 }
 

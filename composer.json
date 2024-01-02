@@ -11,14 +11,20 @@
     ],
     "type": "library",
     "license": "Apache-2.0",
-    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "minimum-stability": "beta",
     "require": {
-        "php": "^8.0",
+        "php": "^8.1",
         "ext-opentelemetry": "*",
+        "monolog/monolog": "2.* || 3.*",
+        "shopware/core": "*",
         "open-telemetry/api": "^1.0.0beta10",
         "open-telemetry/sem-conv": "^1.22",
         "symfony/http-kernel": "*",
         "symfony/http-client-contracts": "*"
+    },
+    "require-dev": {
+        "open-telemetry/opentelemetry-logger-monolog": "*"
     },
     "suggest": {
         "open-telemetry/opentelemetry-logger-monolog": "Monolog logger for OpenTelemetry",
@@ -35,7 +41,8 @@
     },
     "config": {
         "allow-plugins": {
-            "php-http/discovery": false
+            "php-http/discovery": false,
+            "symfony/runtime": false
         }
     }
 }

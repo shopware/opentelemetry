@@ -3,13 +3,21 @@
 namespace Shopware\OpenTelemetry\Profiler;
 
 use OpenTelemetry\API\Globals;
+use OpenTelemetry\API\Trace\SpanInterface;
 use OpenTelemetry\API\Trace\TracerInterface;
 use Shopware\Core\Profiling\Integration\ProfilerInterface;
 
 class OtelProfiler implements ProfilerInterface
 {
+    /**
+     * @var array<string, SpanInterface>
+     */
     private array $spans = [];
 
+    /**
+     * @param non-empty-string $title
+     * @param array<string, string> $tags
+     */
     public function start(string $title, string $category, array $tags): void
     {
         $tracer = $this->getTracer();
