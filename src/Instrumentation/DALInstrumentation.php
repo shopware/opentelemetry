@@ -11,6 +11,7 @@ use OpenTelemetry\SemConv\TraceAttributes;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\AggregationResult\AggregationResultCollection;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\EntitySearchResult;
+
 use function OpenTelemetry\Instrumentation\hook;
 
 final class DALInstrumentation

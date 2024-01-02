@@ -33,6 +33,9 @@
             "_register.php"
         ]
     },
+    "scripts": {
+        "cs-fix": "docker run --rm -v $(pwd):$(pwd) -w $(pwd) shyim/php-cs-fixer --rules @PER-CS2.0,@PER-CS2.0:risky --allow-risky=yes ."
+    },
     "config": {
         "allow-plugins": {
             "php-http/discovery": false

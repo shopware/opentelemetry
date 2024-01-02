@@ -14,10 +14,11 @@ use OpenTelemetry\Context\Context;
 use OpenTelemetry\Contrib\Propagation\TraceResponse\TraceResponsePropagator;
 use Shopware\Core\Framework\Adapter\Kernel\HttpKernel;
 use Throwable;
-use function OpenTelemetry\Instrumentation\hook;
 use OpenTelemetry\SemConv\TraceAttributes;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+
+use function OpenTelemetry\Instrumentation\hook;
 use function sprintf;
 use function strlen;
 

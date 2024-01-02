@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace Shopware\OpenTelemetry\Instrumentation;
 
-use function assert;
 use OpenTelemetry\Context\Propagation\PropagationGetterInterface;
 use Symfony\Component\HttpFoundation\Request;
+
+use function assert;
 
 /**
  * @internal
@@ -29,7 +30,7 @@ final class RequestPropagationGetter implements PropagationGetterInterface
         return $carrier->headers->keys();
     }
 
-    public function get($carrier, string $key) : ?string
+    public function get($carrier, string $key): ?string
     {
         assert($carrier instanceof Request);
 

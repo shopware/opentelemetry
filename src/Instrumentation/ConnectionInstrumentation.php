@@ -12,6 +12,7 @@ use OpenTelemetry\Context\Context;
 use OpenTelemetry\SemConv\TraceAttributes;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\EntitySearchResult;
 use Throwable;
+
 use function OpenTelemetry\Instrumentation\hook;
 
 final class ConnectionInstrumentation
@@ -32,7 +33,7 @@ final class ConnectionInstrumentation
                 string    $function,
                 ?string   $filename,
                 ?int      $lineno,
-            ) use($getter) {
+            ) use ($getter) {
                 $query = trim($getter($stmt)->queryString);
 
                 $spanTitle = 'sql.query.';

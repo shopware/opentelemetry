@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace Shopware\OpenTelemetry\Instrumentation;
 
-use function assert;
 use OpenTelemetry\Context\Propagation\PropagationSetterInterface;
 use Symfony\Component\HttpFoundation\Response;
+
+use function assert;
 
 /**
  * @internal

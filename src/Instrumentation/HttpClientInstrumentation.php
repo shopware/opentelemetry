@@ -11,10 +11,11 @@ use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
 use OpenTelemetry\Context\Propagation\ArrayAccessGetterSetter;
-use function OpenTelemetry\Instrumentation\hook;
 use OpenTelemetry\SemConv\TraceAttributes;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Contracts\HttpClient\ResponseInterface;
+
+use function OpenTelemetry\Instrumentation\hook;
 
 final class HttpClientInstrumentation
 {
@@ -30,7 +31,7 @@ final class HttpClientInstrumentation
                 string $function,
                 ?string $filename,
                 ?int $lineno,
-            ) : array {
+            ): array {
                 $builder = (new CachedInstrumentation('io.opentelemetry.contrib.php.symfony_http'))
                     ->tracer()
                     ->spanBuilder(\sprintf('%s', $params[0]))
