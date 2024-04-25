@@ -16,7 +16,7 @@ if (str_contains($_SERVER['SCRIPT_NAME'], 'phpstan')) {
     return;
 }
 
-if (!extension_loaded('opentelemetry')) {
+if (!\extension_loaded('opentelemetry')) {
     return;
 }
 
