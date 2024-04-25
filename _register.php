@@ -16,6 +16,10 @@ if (str_contains($_SERVER['SCRIPT_NAME'], 'phpstan')) {
     return;
 }
 
+if (!extension_loaded('opentelemetry')) {
+    return;
+}
+
 SymfonyInstrumentation::register();
 HttpClientInstrumentation::register();
 DALInstrumentation::register();
