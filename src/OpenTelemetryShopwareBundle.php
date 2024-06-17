@@ -2,7 +2,9 @@
 
 namespace Shopware\OpenTelemetry;
 
+use OpenTelemetry\API\Globals;
 use Shopware\OpenTelemetry\Logging\OpenTelemetryLoggerFactory;
+use Shopware\OpenTelemetry\Messenger\MessageBusSubscriber;
 use Shopware\OpenTelemetry\Profiler\OtelProfiler;
 use OpenTelemetry\Contrib\Logs\Monolog\Handler;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -15,6 +17,10 @@ class OpenTelemetryShopwareBundle extends Bundle
         $container
             ->register(OtelProfiler::class)
             ->addTag('shopware.profiler', ['integration' => 'OpenTelemetry']);
+
+        $container
+            ->register(MessageBusSubscriber::class)
+            ->addTag('kernel.event_subscriber');
 
         if (ContainerBuilder::willBeAvailable('open-telemetry/opentelemetry-logger-monolog', Handler::class, [])) {
             $container

@@ -33,14 +33,35 @@ final class ConnectionInstrumentation
                 ?string   $filename,
                 ?int      $lineno,
             ) use ($getter) {
+                $backtrace = self::getBacktrace();
+
+                if ($backtrace) {
+                    $class = $backtrace['class'];
+                    $function = $backtrace['function'];
+                    $filename = $backtrace['file'];
+                    $lineno = $backtrace['line'];
+                }
+
                 $query = trim($getter($stmt)->queryString);
 
                 $spanTitle = 'sql.query.';
 
                 if ($query[0] === '#') {
-                    $spanTitle .= substr(explode("\n", $query)[0], 2);
+                    $part = substr(explode("\n", $query)[0], 2);
                 } else {
-                    $spanTitle .= explode(' ', $query, 2)[0];
+                    $part = strtoupper(explode(' ', $query, 2)[0]);
+                }
+
+                $spanTitle .= $part;
+
+                if ($part === 'SELECT' && preg_match('/FROM\s*`?(\w*)`?/m', $query, $matches)) {
+                    $spanTitle .= '.' . $matches[1];
+                } else if ($part === 'INSERT' && preg_match('/INTO\s*`?(\w*)`?/m', $query, $matches)) {
+                    $spanTitle .= '.' . $matches[1];
+                } else if ($part === 'UPDATE' && preg_match('/UPDATE\s*`?(\w*)`?/m', $query, $matches)) {
+                    $spanTitle .= '.' . $matches[1];
+                } else if ($part === 'DELETE' && preg_match('/FROM\s*`?(\w*)`?/m', $query, $matches)) {
+                    $spanTitle .= '.' . $matches[1];
                 }
 
                 $builder = (new CachedInstrumentation('io.opentelemetry.contrib.php.shopware'))
@@ -81,5 +102,24 @@ final class ConnectionInstrumentation
                 $span->end();
             }
         );
+    }
+
+    private static function getBacktrace(): ?array
+    {
+        $backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 10);
+
+        foreach ($backtrace as $trace) {
+            if (isset($trace['class']) && (
+                    str_starts_with($trace['class'], 'Doctrine\\DBAL') ||
+                    str_starts_with($trace['class'], 'Shopware\\OpenTelemetry\\') ||
+                    str_starts_with($trace['class'], 'Shopware\Core\Framework\DataAbstractionLayer')
+                )) {
+                continue;
+            }
+
+            return $trace;
+        }
+
+        return null;
     }
 }

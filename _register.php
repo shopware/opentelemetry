@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Shopware\OpenTelemetry\Instrumentation\CommandInstrumentation;
 use Shopware\OpenTelemetry\Instrumentation\ConnectionInstrumentation;
 use Shopware\OpenTelemetry\Instrumentation\DALInstrumentation;
 use Shopware\OpenTelemetry\Instrumentation\HttpClientInstrumentation;
@@ -12,7 +13,7 @@ if (class_exists(Sdk::class) && Sdk::isInstrumentationDisabled(SymfonyInstrument
     return;
 }
 
-if (str_contains($_SERVER['SCRIPT_NAME'], 'phpstan')) {
+if (str_contains($_SERVER['SCRIPT_NAME'], 'phpstan') || str_contains($_SERVER['SCRIPT_NAME'], 'phpunit')) {
     return;
 }
 
@@ -24,3 +25,4 @@ SymfonyInstrumentation::register();
 HttpClientInstrumentation::register();
 DALInstrumentation::register();
 ConnectionInstrumentation::register();
+CommandInstrumentation::register();
