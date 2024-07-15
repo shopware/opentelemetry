@@ -2,15 +2,25 @@ receivers:
   otlp:
     protocols:
       grpc:
+        endpoint: 0.0.0.0:4317
       http:
+        endpoint: 0.0.0.0:4318
 exporters:
   logging:
+  debug:
   otlp:
     endpoint: tempo:4317
     tls:
       insecure: true
   loki:
     endpoint: http://loki:3100/loki/api/v1/push
+  prometheus:
+    endpoint: 0.0.0.0:8889
+#    const_labels:
+#      src: shopware
+    send_timestamps: true
+    metric_expiration: 180m
+
 service:
   telemetry:
     logs:
@@ -22,3 +32,6 @@ service:
     logs:
       receivers: [otlp]
       exporters: [loki, logging]
+    metrics:
+      receivers: [otlp]
+      exporters: [prometheus, debug]
