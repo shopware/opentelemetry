@@ -11,8 +11,8 @@ use OpenTelemetry\API\Trace\SpanInterface;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
-use OpenTelemetry\Contrib\Propagation\TraceResponse\TraceResponsePropagator;
 use Shopware\Core\Framework\Adapter\Kernel\HttpKernel;
+use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Throwable;
 use OpenTelemetry\SemConv\TraceAttributes;
 use Symfony\Component\HttpFoundation\Request;
@@ -39,11 +39,18 @@ final class SymfonyInstrumentation
                 ?string $filename,
                 ?int $lineno,
             ): array {
+                $instrumentation = new CachedInstrumentation('io.opentelemetry.contrib.php.symfony');
                 $request = ($params[0] instanceof Request) ? $params[0] : null;
-                $builder = (new CachedInstrumentation('io.opentelemetry.contrib.php.symfony'))
+                $type = $params[1] ?? HttpKernelInterface::MAIN_REQUEST;
+                $method = $request?->getMethod() ?? 'unknown';
+                $name = ($type === HttpKernelInterface::SUB_REQUEST)
+                    ? sprintf('%s %s', $method, $request?->attributes?->get('_controller') ?? 'sub-request')
+                    : $method;
+                /** @psalm-suppress ArgumentTypeCoercion */
+                $builder = $instrumentation
                     ->tracer()
-                    ->spanBuilder(sprintf('%s', $request?->getMethod() ?? 'unknown'))
-                    ->setSpanKind(SpanKind::KIND_SERVER)
+                    ->spanBuilder($name)
+                    ->setSpanKind(($type === HttpKernelInterface::SUB_REQUEST) ? SpanKind::KIND_INTERNAL : SpanKind::KIND_SERVER)
                     ->setAttribute(TraceAttributes::CODE_FUNCTION, $function)
                     ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
                     ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
@@ -59,6 +66,9 @@ final class SymfonyInstrumentation
                         ->setAttribute(TraceAttributes::HTTP_REQUEST_BODY_SIZE, $request->headers->get('Content-Length'))
                         ->setAttribute(TraceAttributes::URL_SCHEME, $request->getScheme())
                         ->setAttribute(TraceAttributes::URL_PATH, $request->getPathInfo())
+                        ->setAttribute(TraceAttributes::USER_AGENT_ORIGINAL, $request->headers->get('User-Agent'))
+                        ->setAttribute(TraceAttributes::SERVER_ADDRESS, $request->getHost())
+                        ->setAttribute(TraceAttributes::SERVER_PORT, $request->getPort())
                         ->startSpan();
                     $request->attributes->set(SpanInterface::class, $span);
                 } else {
@@ -120,14 +130,44 @@ final class SymfonyInstrumentation
 
                 $span->setAttribute(TraceAttributes::HTTP_RESPONSE_BODY_SIZE, $contentLength);
 
+                // Propagate server-timing header to response, if ServerTimingPropagator is present
+                if (class_exists('OpenTelemetry\Contrib\Propagation\ServerTiming\ServerTimingPropagator')) {
+                    $prop = new \OpenTelemetry\Contrib\Propagation\ServerTiming\ServerTimingPropagator();
+                    $prop->inject($response, ResponsePropagationSetter::instance(), $scope->context());
+                }
+
                 // Propagate traceresponse header to response, if TraceResponsePropagator is present
                 if (class_exists('OpenTelemetry\Contrib\Propagation\TraceResponse\TraceResponsePropagator')) {
-                    $prop = new TraceResponsePropagator();
+                    $prop = new \OpenTelemetry\Contrib\Propagation\TraceResponse\TraceResponsePropagator();
                     $prop->inject($response, ResponsePropagationSetter::instance(), $scope->context());
                 }
 
                 $span->end();
             }
+        );
+
+        hook(
+            HttpKernel::class,
+            'handleThrowable',
+            pre: static function (
+                HttpKernel $kernel,
+                array $params,
+                string $class,
+                string $function,
+                ?string $filename,
+                ?int $lineno,
+            ): array {
+                /** @var \Throwable $throwable */
+                $throwable = $params[0];
+
+                Span::getCurrent()
+                    ->recordException($throwable, [
+                        TraceAttributes::EXCEPTION_ESCAPED => true,
+                    ])
+                    ->setStatus(StatusCode::STATUS_ERROR, $throwable->getMessage());
+
+                return $params;
+            },
         );
     }
 }

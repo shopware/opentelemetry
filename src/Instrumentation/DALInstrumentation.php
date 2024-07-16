@@ -18,102 +18,85 @@ final class DALInstrumentation
 {
     public static function register(): void
     {
-        hook(
-            EntityRepository::class,
+        $methods = [
             'search',
-            pre: static function (
-                EntityRepository $repository,
-                array $params,
-                string $class,
-                string $function,
-                ?string $filename,
-                ?int $lineno,
-            ) {
-                $builder = (new CachedInstrumentation('io.opentelemetry.contrib.php.shopware'))
-                    ->tracer()
-                    ->spanBuilder($repository->getDefinition()->getEntityName() . '::search')
-                    ->setSpanKind(SpanKind::KIND_SERVER)
-                    ->setAttribute(TraceAttributes::CODE_FUNCTION, $function)
-                    ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
-                    ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
-                    ->setAttribute(TraceAttributes::CODE_LINENO, $lineno);
-
-                $parent = Context::getCurrent();
-
-                $span = $builder
-                    ->setParent($parent)
-                    ->startSpan();
-
-                Context::storage()->attach($span->storeInContext($parent));
-            },
-            post: static function (
-                EntityRepository $repository,
-                array $params,
-                ?EntitySearchResult $response,
-                ?\Throwable $exception
-            ) {
-                $scope = Context::storage()->scope();
-                if (null === $scope) {
-                    return;
-                }
-                $scope->detach();
-                $span = Span::fromContext($scope->context());
-
-                if ($exception) {
-                    $span->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());
-                }
-
-                $span->end();
-            }
-        );
-
-        hook(
-            EntityRepository::class,
             'aggregate',
-            pre: static function (
-                EntityRepository $repository,
-                array $params,
-                string $class,
-                string $function,
-                ?string $filename,
-                ?int $lineno,
-            ) {
-                $builder = (new CachedInstrumentation('io.opentelemetry.contrib.php.shopware'))
-                    ->tracer()
-                    ->spanBuilder($repository->getDefinition()->getEntityName() . '::aggregate')
-                    ->setSpanKind(SpanKind::KIND_SERVER)
-                    ->setAttribute(TraceAttributes::CODE_FUNCTION, $function)
-                    ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
-                    ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
-                    ->setAttribute(TraceAttributes::CODE_LINENO, $lineno);
+            'searchIds',
+            'update',
+            'upsert',
+            'create',
+            'delete',
+            'createVersion',
+            'merge',
+            'clone'
+        ];
 
-                $parent = Context::getCurrent();
+        foreach ($methods as $method) {
+            hook(
+                EntityRepository::class,
+                $method,
+                pre: self::pre(),
+                post: self::post()
+            );
+        }
+    }
 
-                $span = $builder
-                    ->setParent($parent)
-                    ->startSpan();
-
-                Context::storage()->attach($span->storeInContext($parent));
-            },
-            post: static function (
-                EntityRepository $repository,
-                array $params,
-                ?AggregationResultCollection $response,
-                ?\Throwable $exception
-            ) {
-                $scope = Context::storage()->scope();
-                if (null === $scope) {
-                    return;
-                }
-                $scope->detach();
-                $span = Span::fromContext($scope->context());
-
-                if ($exception) {
-                    $span->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());
-                }
-
-                $span->end();
+    /**
+     * @return \Closure
+     */
+    public static function post(): \Closure
+    {
+        return static function (
+            EntityRepository    $repository,
+            array               $params,
+            mixed               $return,
+            ?\Throwable         $exception
+        ) {
+            $scope = Context::storage()->scope();
+            if (null === $scope) {
+                return;
             }
-        );
+            $scope->detach();
+            $span = Span::fromContext($scope->context());
+
+            if ($exception) {
+                $span->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());
+                $span->recordException($exception);
+            }
+
+            $span->end();
+        };
+    }
+
+    /**
+     * @return \Closure
+     */
+    public static function pre(): \Closure
+    {
+        return static function (
+            EntityRepository $repository,
+            array            $params,
+            string           $class,
+            string           $function,
+            ?string          $filename,
+            ?int             $lineno,
+        ) {
+            $builder = (new CachedInstrumentation('io.opentelemetry.contrib.php.shopware.dal'))
+                ->tracer()
+                ->spanBuilder(sprintf('%s::%s', $repository->getDefinition()->getEntityName(), $function))
+                ->setSpanKind(SpanKind::KIND_INTERNAL)
+                ->setAttribute(TraceAttributes::CODE_FUNCTION, $function)
+                ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
+                ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
+                ->setAttribute(TraceAttributes::CODE_LINENO, $lineno);
+
+            $parent = Context::getCurrent();
+
+            $span = $builder
+                ->setParent($parent)
+                ->startSpan();
+
+            Context::storage()->attach($span->storeInContext($parent));
+        };
     }
 }

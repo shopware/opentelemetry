@@ -12,16 +12,18 @@
     "type": "library",
     "license": "Apache-2.0",
     "prefer-stable": true,
-    "minimum-stability": "beta",
+    "minimum-stability": "stable",
     "require": {
         "php": "^8.1",
         "ext-opentelemetry": "*",
         "monolog/monolog": "2.* || 3.*",
         "shopware/core": "*",
-        "open-telemetry/api": "^1.0.0beta10",
+        "open-telemetry/api": "^1.0.3",
         "open-telemetry/sem-conv": "^1.22",
         "symfony/http-kernel": "*",
-        "symfony/http-client-contracts": "*"
+        "symfony/http-client-contracts": "*",
+        "opensearch-project/opensearch-php": "^2.0",
+        "open-telemetry/sdk": "^1.0"
     },
     "require-dev": {
         "open-telemetry/opentelemetry-logger-monolog": "*"

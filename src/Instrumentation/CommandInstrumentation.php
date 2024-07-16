@@ -4,9 +4,9 @@ namespace Shopware\OpenTelemetry\Instrumentation;
 
 use OpenTelemetry\API\Instrumentation\CachedInstrumentation;
 use OpenTelemetry\API\Trace\Span;
+use OpenTelemetry\API\Trace\SpanKind;
+use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
-use Opentelemetry\Proto\Trace\V1\Span\SpanKind;
-use Opentelemetry\Proto\Trace\V1\Status\StatusCode;
 use OpenTelemetry\SemConv\TraceAttributes;
 use Symfony\Component\Console\Application;
 use Throwable;
@@ -30,7 +30,7 @@ class CommandInstrumentation
                 $builder = (new CachedInstrumentation('io.opentelemetry.contrib.php.shopware'))
                     ->tracer()
                     ->spanBuilder(sprintf('bin/console %s', $params[0]->getName()))
-                    ->setSpanKind(SpanKind::SPAN_KIND_INTERNAL)
+                    ->setSpanKind(SpanKind::KIND_INTERNAL)
                     ->setAttribute(TraceAttributes::CODE_FUNCTION, $function)
                     ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
                     ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
@@ -57,7 +57,7 @@ class CommandInstrumentation
                 $scope->detach();
                 $span = Span::fromContext($scope->context());
                 if ($exception !== null) {
-                    $span->setStatus(StatusCode::STATUS_CODE_ERROR, $exception->getMessage());
+                    $span->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());
                 }
                 $span->end();
             }

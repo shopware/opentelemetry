@@ -67,7 +67,7 @@ final class ConnectionInstrumentation
                 $builder = (new CachedInstrumentation('io.opentelemetry.contrib.php.shopware'))
                     ->tracer()
                     ->spanBuilder($spanTitle)
-                    ->setSpanKind(SpanKind::KIND_SERVER)
+                    ->setSpanKind(SpanKind::KIND_CLIENT)
                     ->setAttribute(TraceAttributes::DB_STATEMENT, $query)
                     ->setAttribute(TraceAttributes::CODE_FUNCTION, $function)
                     ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
