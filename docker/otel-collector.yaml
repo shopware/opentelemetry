@@ -8,18 +8,36 @@ receivers:
 exporters:
   logging:
   debug:
-  otlp:
+  otlp/tempo:
     endpoint: tempo:4317
     tls:
       insecure: true
+  # exporter to datadog agent using otlp protocol
+  # otlp/datadog:
+  #   endpoint: dd-agent:4317
+  #   tls:
+  #     insecure: true
   loki:
     endpoint: http://loki:3100/loki/api/v1/push
   prometheus:
     endpoint: 0.0.0.0:8889
-#    const_labels:
-#      src: shopware
-    send_timestamps: true
+    # adding labels to the metrics
+    # const_labels:
+    #   src: shopware
+    send_timestamps: false
     metric_expiration: 180m
+  # exporter to datadog using datadog api
+  # for configuration example see https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/exporter/datadogexporter/examples/collector.yaml
+  datadog:
+    api:
+      site: ${env:DD_SITE}
+      key: ${env:DD_API_KEY}
+    metrics:
+      histograms:
+        mode: counters
+        send_aggregation_metrics: true
+    traces:
+      # trace_buffer: 10
 
 service:
   telemetry:
@@ -28,10 +46,14 @@ service:
   pipelines:
     traces:
       receivers: [otlp]
-      exporters: [otlp]
+      # if you want to export through datadog agent, not to api directly, use otlp/datadog instead of datadog
+      # in such case otlp/datadog exporter have to be enabled in exporters section
+      exporters: [otlp/tempo, debug, datadog]
     logs:
       receivers: [otlp]
       exporters: [loki, logging]
     metrics:
       receivers: [otlp]
-      exporters: [prometheus, debug]
+      # if you want to export through datadog agent, not to api directly, use otlp/datadog instead of datadog
+      # in such case otlp/datadog exporter have to be enabled in exporters section
+      exporters: [prometheus, debug, datadog]
