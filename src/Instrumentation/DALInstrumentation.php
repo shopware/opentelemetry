@@ -28,7 +28,7 @@ final class DALInstrumentation
             'delete',
             'createVersion',
             'merge',
-            'clone'
+            'clone',
         ];
 
         foreach ($methods as $method) {
@@ -36,7 +36,7 @@ final class DALInstrumentation
                 EntityRepository::class,
                 $method,
                 pre: self::pre(),
-                post: self::post()
+                post: self::post(),
             );
         }
     }
@@ -50,7 +50,7 @@ final class DALInstrumentation
             EntityRepository    $repository,
             array               $params,
             mixed               $return,
-            ?\Throwable         $exception
+            ?\Throwable         $exception,
         ) {
             $scope = Context::storage()->scope();
             if (null === $scope) {

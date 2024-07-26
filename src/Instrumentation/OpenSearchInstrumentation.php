@@ -12,14 +12,15 @@ use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
 use OpenTelemetry\SemConv\TraceAttributes;
 use Throwable;
+
 use function OpenTelemetry\Instrumentation\hook;
 
 class OpenSearchInstrumentation
 {
-    private const INSTRUMENTATION_NAME = 'io.opentelemetry.contrib.php.opensearch';
+    private const INSTRUMENTATION_NAME = 'io.opentelemetry.contrib.php.shopware.opensearch';
     private const TRACE_ATTRIBUTE_SIZE = 'body.size';
 
-    static public function register(): void
+    public static function register(): void
     {
         self::instrumentClient();
         self::instrumentIndices();
@@ -64,7 +65,7 @@ class OpenSearchInstrumentation
                 },
                 post: static function (Client $client, array $params, ?array $response, ?Throwable $exception) {
                     self::end($exception);
-                }
+                },
             );
         }
     }
@@ -85,7 +86,7 @@ class OpenSearchInstrumentation
         $span->end();
     }
 
-    private static function instrumentIndices()
+    private static function instrumentIndices(): void
     {
         hook(
             class: IndicesNamespace::class,
@@ -121,7 +122,7 @@ class OpenSearchInstrumentation
             },
             post: static function (IndicesNamespace $indices, array $params, ?array $response, ?Throwable $exception) {
                 self::end($exception);
-            }
+            },
         );
 
     }

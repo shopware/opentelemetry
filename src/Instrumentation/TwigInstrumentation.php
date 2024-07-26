@@ -4,6 +4,7 @@ namespace Shopware\OpenTelemetry\Instrumentation;
 
 use OpenTelemetry\API\Instrumentation\CachedInstrumentation;
 use OpenTelemetry\API\Trace\Span;
+use OpenTelemetry\API\Trace\SpanInterface;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
@@ -32,7 +33,17 @@ class TwigInstrumentation
                 ?int $lineno,
             ) {
                 $templateName = self::extractTemplateName($params);
-                $span = self::createSpan($templateName, $class, $function, $filename, $lineno);
+                $builder = (new CachedInstrumentation(self::INSTRUMENTATION_NAME))
+                    ->tracer()
+                    ->spanBuilder(sprintf('twig.render template: %s', $templateName))
+                    ->setSpanKind(SpanKind::KIND_INTERNAL)
+                    ->setAttribute(TraceAttributes::CODE_FUNCTION, $function)
+                    ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
+                    ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
+                    ->setAttribute(TraceAttributes::CODE_LINENO, $lineno);
+
+                $parent = Context::getCurrent();
+                $span = $builder->setParent($parent)->startSpan();
                 Context::storage()->attach($span->storeInContext(Context::getCurrent()));
             },
             post: static function (
@@ -59,19 +70,5 @@ class TwigInstrumentation
     private static function extractTemplateName(array $params): string
     {
         return $params[0] instanceof TemplateWrapper ? $params[0]->getTemplateName() : $params[0];
-    }
-
-    private static function createSpan(string $templateName, string $class, string $function, ?string $filename, ?int $lineno): Span
-    {
-        $builder = (new CachedInstrumentation(self::INSTRUMENTATION_NAME))
-            ->tracer()
-            ->spanBuilder(sprintf('twig.render template: %s', $templateName))
-            ->setSpanKind(SpanKind::KIND_INTERNAL)
-            ->setAttribute(TraceAttributes::CODE_FUNCTION, $function)
-            ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
-            ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
-            ->setAttribute(TraceAttributes::CODE_LINENO, $lineno);
-
-        return $builder->setParent(Context::getCurrent())->startSpan();
     }
 }

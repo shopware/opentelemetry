@@ -14,7 +14,6 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Throwable;
 
-
 use function OpenTelemetry\Instrumentation\hook;
 
 class ShopwareInstrumentation
@@ -117,7 +116,7 @@ class ShopwareInstrumentation
                 ScriptExecutor $executor,
                 array          $params,
                 mixed          $ret,
-                ?Throwable     $exception
+                ?Throwable     $exception,
             ) {
                 $scope = Context::storage()->scope();
                 if (null === $scope) {
@@ -130,7 +129,7 @@ class ShopwareInstrumentation
                 }
                 $span->end();
                 $scope->detach();
-            }
+            },
         );
     }
 
