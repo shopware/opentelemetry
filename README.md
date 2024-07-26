@@ -73,3 +73,15 @@ monolog:
             type: service
             id: monolog.handler.open_telemetry
 ```
+
+## Transport metrics to OpenTelemetry
+
+You can enable OpenTelemetry metrics transport with the following configuration:
+
+```yaml
+# config/packages/opentelemetry.yaml
+open_telemetry_shopware:
+  metrics:
+    enabled: true
+    namespace: 'io.opentelemetry.contrib.php.shopware' # or your custom namespace
+```
