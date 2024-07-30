@@ -24,7 +24,8 @@
         "symfony/http-client-contracts": "*"
     },
     "require-dev": {
-        "open-telemetry/opentelemetry-logger-monolog": "*"
+        "open-telemetry/opentelemetry-logger-monolog": "*",
+        "phpunit/phpunit": "^11.2"
     },
     "suggest": {
         "open-telemetry/opentelemetry-logger-monolog": "Monolog logger for OpenTelemetry",
@@ -38,6 +39,12 @@
         "files": [
             "_register.php"
         ]
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Shopware\\OpenTelemetry\\Tests\\Unit\\": "tests/unit/",
+            "Shopware\\OpenTelemetry\\Tests\\Integration\\": "tests/integration/"
+        }
     },
     "config": {
         "allow-plugins": {
