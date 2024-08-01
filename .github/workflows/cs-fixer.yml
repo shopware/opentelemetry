@@ -1,0 +1,14 @@
+name: CS-Fixer
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '**.php'
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  cs-fixer:
+    uses: shopware/github-actions/.github/workflows/cs-fixer.yml@main
