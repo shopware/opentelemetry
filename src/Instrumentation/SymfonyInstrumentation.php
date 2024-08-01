@@ -72,7 +72,7 @@ final class SymfonyInstrumentation
                 HttpKernel $kernel,
                 array $params,
                 ?Response $response,
-                ?Throwable $exception
+                ?Throwable $exception,
             ): void {
                 $scope = Context::storage()->scope();
                 if (null === $scope) {
@@ -127,7 +127,7 @@ final class SymfonyInstrumentation
                 }
 
                 $span->end();
-            }
+            },
         );
     }
 }

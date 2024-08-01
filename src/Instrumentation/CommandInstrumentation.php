@@ -10,6 +10,7 @@ use Opentelemetry\Proto\Trace\V1\Status\StatusCode;
 use OpenTelemetry\SemConv\TraceAttributes;
 use Symfony\Component\Console\Application;
 use Throwable;
+
 use function OpenTelemetry\Instrumentation\hook;
 
 class CommandInstrumentation
@@ -48,7 +49,7 @@ class CommandInstrumentation
                 Application $application,
                 array       $params,
                 mixed       $ret,
-                ?Throwable  $exception
+                ?Throwable  $exception,
             ) {
                 $scope = Context::storage()->scope();
                 if (null === $scope) {
@@ -60,7 +61,7 @@ class CommandInstrumentation
                     $span->setStatus(StatusCode::STATUS_CODE_ERROR, $exception->getMessage());
                 }
                 $span->end();
-            }
+            },
         );
     }
 }

@@ -50,7 +50,7 @@ final class DALInstrumentation
                 EntityRepository $repository,
                 array $params,
                 ?EntitySearchResult $response,
-                ?\Throwable $exception
+                ?\Throwable $exception,
             ) {
                 $scope = Context::storage()->scope();
                 if (null === $scope) {
@@ -64,7 +64,7 @@ final class DALInstrumentation
                 }
 
                 $span->end();
-            }
+            },
         );
 
         hook(
@@ -99,7 +99,7 @@ final class DALInstrumentation
                 EntityRepository $repository,
                 array $params,
                 ?AggregationResultCollection $response,
-                ?\Throwable $exception
+                ?\Throwable $exception,
             ) {
                 $scope = Context::storage()->scope();
                 if (null === $scope) {
@@ -113,7 +113,7 @@ final class DALInstrumentation
                 }
 
                 $span->end();
-            }
+            },
         );
     }
 }

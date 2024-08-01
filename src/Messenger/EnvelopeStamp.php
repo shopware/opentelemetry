@@ -6,8 +6,5 @@ use Symfony\Component\Messenger\Stamp\StampInterface;
 
 class EnvelopeStamp implements StampInterface
 {
-    public function __construct(public array $data = [])
-    {
-
-    }
+    public function __construct(public array $data = []) {}
 }

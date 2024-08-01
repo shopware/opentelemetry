@@ -93,7 +93,7 @@ final class HttpClientInstrumentation
                 HttpClientInterface $client,
                 array $params,
                 ?ResponseInterface $response,
-                ?\Throwable $exception
+                ?\Throwable $exception,
             ): void {
                 $scope = Context::storage()->scope();
                 if (null === $scope) {
