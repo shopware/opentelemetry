@@ -22,11 +22,11 @@
         "open-telemetry/sem-conv": "^1.22",
         "symfony/http-kernel": "*",
         "symfony/http-client-contracts": "*",
-        "opensearch-project/opensearch-php": "^2.0",
         "open-telemetry/sdk": "^1.0"
     },
     "require-dev": {
-        "open-telemetry/opentelemetry-logger-monolog": "*"
+        "open-telemetry/opentelemetry-logger-monolog": "*",
+        "opensearch-project/opensearch-php": "^2.0"
     },
     "suggest": {
         "open-telemetry/opentelemetry-logger-monolog": "Monolog logger for OpenTelemetry",

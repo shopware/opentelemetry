@@ -31,4 +31,6 @@ DALInstrumentation::register();
 ConnectionInstrumentation::register();
 CommandInstrumentation::register();
 TwigInstrumentation::register();
-OpenSearchInstrumentation::register();
+if (class_exists('OpenSearch\Client')) {
+    OpenSearchInstrumentation::register();
+}
