@@ -1,0 +1,66 @@
+parameters:
+	ignoreErrors:
+		-
+			message: "#^Access to constant SPAN_KIND_INTERNAL on an unknown class Opentelemetry\\\\Proto\\\\Trace\\\\V1\\\\Span\\\\SpanKind\\.$#"
+			count: 1
+			path: src/Instrumentation/CommandInstrumentation.php
+
+		-
+			message: "#^Access to constant STATUS_CODE_ERROR on an unknown class Opentelemetry\\\\Proto\\\\Trace\\\\V1\\\\Status\\\\StatusCode\\.$#"
+			count: 1
+			path: src/Instrumentation/CommandInstrumentation.php
+
+		-
+			message: "#^Method Shopware\\\\OpenTelemetry\\\\Instrumentation\\\\CommandInstrumentation\\:\\:register\\(\\) has no return type specified\\.$#"
+			count: 1
+			path: src/Instrumentation/CommandInstrumentation.php
+
+		-
+			message: "#^Method Shopware\\\\OpenTelemetry\\\\Instrumentation\\\\ConnectionInstrumentation\\:\\:getBacktrace\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Instrumentation/ConnectionInstrumentation.php
+
+		-
+			message: "#^Parameter \\#1 \\$spanName of method OpenTelemetry\\\\API\\\\Trace\\\\TracerInterface\\:\\:spanBuilder\\(\\) expects non\\-empty\\-string, string given\\.$#"
+			count: 1
+			path: src/Instrumentation/HttpClientInstrumentation.php
+
+		-
+			message: "#^Method Shopware\\\\OpenTelemetry\\\\Instrumentation\\\\RequestPropagationGetter\\:\\:get\\(\\) has parameter \\$carrier with no type specified\\.$#"
+			count: 1
+			path: src/Instrumentation/RequestPropagationGetter.php
+
+		-
+			message: "#^Method Shopware\\\\OpenTelemetry\\\\Instrumentation\\\\RequestPropagationGetter\\:\\:keys\\(\\) has parameter \\$carrier with no type specified\\.$#"
+			count: 1
+			path: src/Instrumentation/RequestPropagationGetter.php
+
+		-
+			message: "#^Parameter \\#1 \\$spanName of method OpenTelemetry\\\\API\\\\Trace\\\\TracerInterface\\:\\:spanBuilder\\(\\) expects non\\-empty\\-string, string given\\.$#"
+			count: 1
+			path: src/Instrumentation/SymfonyInstrumentation.php
+
+		-
+			message: "#^Method Shopware\\\\OpenTelemetry\\\\Messenger\\\\EnvelopePropagator\\:\\:get\\(\\) has parameter \\$carrier with no type specified\\.$#"
+			count: 1
+			path: src/Messenger/EnvelopePropagator.php
+
+		-
+			message: "#^Method Shopware\\\\OpenTelemetry\\\\Messenger\\\\EnvelopePropagator\\:\\:keys\\(\\) has parameter \\$carrier with no type specified\\.$#"
+			count: 1
+			path: src/Messenger/EnvelopePropagator.php
+
+		-
+			message: "#^Method Shopware\\\\OpenTelemetry\\\\Messenger\\\\EnvelopeStamp\\:\\:__construct\\(\\) has parameter \\$data with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Messenger/EnvelopeStamp.php
+
+		-
+			message: "#^Access to constant SPAN_KIND_CONSUMER on an unknown class Opentelemetry\\\\Proto\\\\Trace\\\\V1\\\\Span\\\\SpanKind\\.$#"
+			count: 1
+			path: src/Messenger/MessageBusSubscriber.php
+
+		-
+			message: "#^Method Shopware\\\\OpenTelemetry\\\\Messenger\\\\MessageBusSubscriber\\:\\:onHandled\\(\\) has parameter \\$event with no type specified\\.$#"
+			count: 1
+			path: src/Messenger/MessageBusSubscriber.php

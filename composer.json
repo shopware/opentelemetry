@@ -25,7 +25,10 @@
     },
     "require-dev": {
         "open-telemetry/opentelemetry-logger-monolog": "*",
-        "phpunit/phpunit": "^11.2"
+        "phpunit/phpunit": "^11.2",
+        "phpstan/phpstan": "^1.11",
+        "phpstan/phpstan-symfony": "^1.4",
+        "phpstan/extension-installer": "^1.4"
     },
     "suggest": {
         "open-telemetry/opentelemetry-logger-monolog": "Monolog logger for OpenTelemetry",
@@ -49,7 +52,8 @@
     "config": {
         "allow-plugins": {
             "php-http/discovery": false,
-            "symfony/runtime": false
+            "symfony/runtime": false,
+            "phpstan/extension-installer": true
         }
     }
 }

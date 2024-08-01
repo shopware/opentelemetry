@@ -1,8 +1,9 @@
+includes:
+    - phpstan-baseline.neon
+
 parameters:
     phpVersion: 80100
     level: max
     paths:
         - src
-    ignoreErrors:
-        # Remove when 6.6 is released
-        - '#Shopware\\Core\\Framework\\Adapter\\Kernel\\HttpKernel#'
+        - tests
