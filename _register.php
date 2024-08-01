@@ -12,7 +12,7 @@ use Shopware\OpenTelemetry\Instrumentation\SymfonyInstrumentation;
 use OpenTelemetry\SDK\Sdk;
 use Shopware\OpenTelemetry\Instrumentation\TwigInstrumentation;
 
-if (class_exists(Sdk::class) && Sdk::isInstrumentationDisabled(SymfonyInstrumentation::NAME) === true) {
+if (class_exists(Sdk::class) && Sdk::isInstrumentationDisabled(ShopwareInstrumentation::NAME) === true) {
     return;
 }
 

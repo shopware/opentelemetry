@@ -24,8 +24,6 @@ use function strlen;
 
 final class SymfonyInstrumentation
 {
-    public const NAME = 'symfony';
-
     public static function register(): void
     {
         hook(

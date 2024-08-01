@@ -20,6 +20,11 @@ OTEL_PHP_AUTOLOAD_ENABLED=true
 OTEL_SERVICE_NAME=shopware # or any other name
 ```
 
+This extension can be disabled via:
+```bash
+OTEL_PHP_DISABLED_INSTRUMENTATIONS=shopware
+```
+
 You will need to configure the exporter to send the data to a collector. 
 
 Here is an example with OTLP over gRPC:

@@ -18,6 +18,8 @@ use function OpenTelemetry\Instrumentation\hook;
 
 class ShopwareInstrumentation
 {
+    public const NAME = 'shopware';
+
     private const INSTRUMENTATION_NAME = 'io.opentelemetry.contrib.php.shopware';
 
     public static function register(): void
