@@ -3,7 +3,7 @@ name: CS-Fixer
 on:
   push:
     branches:
-      - master
+      - main
     paths:
       - '**.php'
   pull_request:

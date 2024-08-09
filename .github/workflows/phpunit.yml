@@ -3,7 +3,7 @@ name: PHPUnit
 on:
   push:
     branches:
-      - master
+      - main
     paths:
       - '**.php'
       - 'composer.json'
