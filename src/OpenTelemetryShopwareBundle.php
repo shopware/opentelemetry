@@ -68,6 +68,9 @@ class OpenTelemetryShopwareBundle extends AbstractBundle
      */
     public function loadExtension(array $config, ContainerConfigurator $container, ContainerBuilder $builder): void
     {
+        if (!Feature::metricsSupported()) {
+            return;
+        }
         $metricsConfig = $config['metrics'];
         $namespace = $metricsConfig['namespace'];
 
