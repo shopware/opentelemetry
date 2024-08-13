@@ -33,6 +33,7 @@ class TwigInstrumentation
                 ?string $filename,
                 ?int $lineno,
             ) {
+                /** @var array{0:string|TemplateWrapper} $params */
                 $templateName = self::extractTemplateName($params);
                 $builder = (new CachedInstrumentation(self::INSTRUMENTATION_NAME))
                     ->tracer()
@@ -68,6 +69,9 @@ class TwigInstrumentation
         );
     }
 
+    /**
+     * @param array{0:string|TemplateWrapper} $params
+     */
     private static function extractTemplateName(array $params): string
     {
         return $params[0] instanceof TemplateWrapper ? $params[0]->getTemplateName() : $params[0];

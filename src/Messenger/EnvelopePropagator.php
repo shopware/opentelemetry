@@ -28,6 +28,9 @@ class EnvelopePropagator implements PropagationSetterInterface, PropagationGette
         $carrier->data[$key] = $value;
     }
 
+    /**
+     * @param EnvelopeStamp $carrier
+     */
     public function keys($carrier): array
     {
         assert($carrier instanceof EnvelopeStamp);
@@ -35,6 +38,9 @@ class EnvelopePropagator implements PropagationSetterInterface, PropagationGette
         return array_keys($carrier->data);
     }
 
+    /**
+     * @param EnvelopeStamp $carrier
+     */
     public function get($carrier, string $key): ?string
     {
         assert($carrier instanceof EnvelopeStamp);

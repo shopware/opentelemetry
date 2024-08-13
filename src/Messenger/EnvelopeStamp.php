@@ -8,5 +8,8 @@ use Symfony\Component\Messenger\Stamp\StampInterface;
 
 class EnvelopeStamp implements StampInterface
 {
+    /**
+     * @param array<string,string> $data
+     */
     public function __construct(public array $data = []) {}
 }
