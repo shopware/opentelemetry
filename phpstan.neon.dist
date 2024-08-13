@@ -5,3 +5,20 @@ parameters:
         - src
         - tests
     reportUnmatchedIgnoredErrors: true
+    excludePaths:
+        # ignoring errors caused by missed classes in core, should be removed after release of shopware/core with relevant classes
+        - src/Metrics/Transports/OpenTelemetryMetricTransport.php
+    ignoreErrors:
+        # ignoring errors caused by missed classes in core, should be removed after release of shopware/core with relevant classes
+        -
+            identifier: class.notFound
+            path: tests/unit/OpenTelemetryMetricTransportTest.php
+        -
+            identifier: argument.type
+            path: tests/unit/OpenTelemetryMetricTransportTest.php
+
+        # ignoring error caused by workaround to make phpunit properly skip tests with data provider when classes are not found
+        -
+            identifier: return.type
+            path: tests/unit/OpenTelemetryMetricTransportTest.php
+            count: 2

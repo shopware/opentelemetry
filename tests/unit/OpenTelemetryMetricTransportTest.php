@@ -13,6 +13,7 @@ use OpenTelemetry\API\Metrics\UpDownCounterInterface;
 use OpenTelemetry\Context\ContextInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Shopware\Core\Framework\Telemetry\Metrics\Exception\MetricNotSupportedException;
@@ -21,12 +22,14 @@ use Shopware\Core\Framework\Telemetry\Metrics\Metric\Gauge;
 use Shopware\Core\Framework\Telemetry\Metrics\Metric\Histogram;
 use Shopware\Core\Framework\Telemetry\Metrics\Metric\MetricInterface;
 use Shopware\Core\Framework\Telemetry\Metrics\Metric\UpDownCounter;
+use Shopware\OpenTelemetry\Feature;
 use Shopware\OpenTelemetry\Metrics\Transports\OpenTelemetryMetricTransport;
 
 /**
  * @phpstan-import-type Attributes from OpenTelemetryMetricTransport
  */
 #[CoversClass(OpenTelemetryMetricTransport::class)]
+#[UsesClass(Feature::class)]
 class OpenTelemetryMetricTransportTest extends TestCase
 {
     /**
@@ -41,6 +44,10 @@ class OpenTelemetryMetricTransportTest extends TestCase
 
     public function setUp(): void
     {
+        if (!Feature::metricsSupported()) {
+            static::markTestSkipped('Installed version of shopware/core does not support metrics');
+        }
+
         $this->meterMock = $this->createMock(MeterInterface::class);
         $this->contextMock = $this->createMock(ContextInterface::class);
     }
@@ -50,6 +57,10 @@ class OpenTelemetryMetricTransportTest extends TestCase
      */
     public static function getMetrics(): array
     {
+        if (!Feature::metricsSupported()) {
+            return [[]];
+        }
+
         return [
             'Counter' => [
                 'metric' => new Counter('cnt', 1, 'desc', 'count'),
