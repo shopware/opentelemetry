@@ -18,7 +18,7 @@
         "ext-opentelemetry": "*",
         "monolog/monolog": "2.* || 3.*",
         "shopware/core": "*",
-        "open-telemetry/api": "^1.0.0beta10",
+        "open-telemetry/api": "^1.0.3",
         "open-telemetry/sem-conv": "^1.22",
         "symfony/http-kernel": "*",
         "symfony/http-client-contracts": "*"

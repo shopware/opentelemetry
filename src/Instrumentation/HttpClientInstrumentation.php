@@ -32,9 +32,11 @@ final class HttpClientInstrumentation
                 ?string $filename,
                 ?int $lineno,
             ): array {
+                $method = is_string($params[0]) && strlen($params[0]) > 0 ? $params[0] : 'UNKNOWN_HTTP_METHOD';
+
                 $builder = (new CachedInstrumentation('io.opentelemetry.contrib.php.symfony_http'))
                     ->tracer()
-                    ->spanBuilder(\sprintf('%s', $params[0]))
+                    ->spanBuilder($method)
                     ->setSpanKind(SpanKind::KIND_CLIENT)
                     ->setAttribute(TraceAttributes::URL_FULL, (string) $params[1])
                     ->setAttribute(TraceAttributes::HTTP_REQUEST_METHOD, $params[0])
@@ -93,7 +95,7 @@ final class HttpClientInstrumentation
                 HttpClientInterface $client,
                 array $params,
                 ?ResponseInterface $response,
-                ?\Throwable $exception
+                ?\Throwable $exception,
             ): void {
                 $scope = Context::storage()->scope();
                 if (null === $scope) {

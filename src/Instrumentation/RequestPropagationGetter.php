@@ -21,7 +21,10 @@ final class RequestPropagationGetter implements PropagationGetterInterface
         return $instance ??= new self();
     }
 
-    /** @psalm-suppress InvalidReturnType */
+    /**
+     * @param Request $carrier
+     * @psalm-suppress InvalidReturnType
+     */
     public function keys($carrier): array
     {
         assert($carrier instanceof Request);
@@ -30,6 +33,9 @@ final class RequestPropagationGetter implements PropagationGetterInterface
         return $carrier->headers->keys();
     }
 
+    /**
+     * @param Request $carrier
+     */
     public function get($carrier, string $key): ?string
     {
         assert($carrier instanceof Request);
