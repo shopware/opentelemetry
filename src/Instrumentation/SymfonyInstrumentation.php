@@ -40,10 +40,17 @@ final class SymfonyInstrumentation
                 $instrumentation = new CachedInstrumentation('io.opentelemetry.contrib.php.symfony');
                 $request = ($params[0] instanceof Request) ? $params[0] : null;
                 $type = $params[1] ?? HttpKernelInterface::MAIN_REQUEST;
-                $method = $request?->getMethod() ?? 'unknown';
-                $name = ($type === HttpKernelInterface::SUB_REQUEST)
-                    ? sprintf('%s %s', $method, $request?->attributes?->get('_controller') ?? 'sub-request')
-                    : $method;
+                $method = $request?->getMethod() ?? '';
+                $method = $method === '' ? 'unknown' : $method;
+
+                if ($type === HttpKernelInterface::SUB_REQUEST) {
+                    $controller = $request?->attributes?->get('_controller');
+                    $path = is_string($controller) && strlen($controller) > 0 ? $controller : 'sub-request';
+                    $name = sprintf('%s %s', $method, $path);
+                } else {
+                    $name = $method;
+                }
+
                 /** @psalm-suppress ArgumentTypeCoercion */
                 $builder = $instrumentation
                     ->tracer()
