@@ -56,18 +56,18 @@ final class ConnectionInstrumentation
 
                 if ($part === 'SELECT' && preg_match('/FROM\s*`?(\w*)`?/m', $query, $matches)) {
                     $spanTitle .= '.' . $matches[1];
-                } else if ($part === 'INSERT' && preg_match('/INTO\s*`?(\w*)`?/m', $query, $matches)) {
+                } elseif ($part === 'INSERT' && preg_match('/INTO\s*`?(\w*)`?/m', $query, $matches)) {
                     $spanTitle .= '.' . $matches[1];
-                } else if ($part === 'UPDATE' && preg_match('/UPDATE\s*`?(\w*)`?/m', $query, $matches)) {
+                } elseif ($part === 'UPDATE' && preg_match('/UPDATE\s*`?(\w*)`?/m', $query, $matches)) {
                     $spanTitle .= '.' . $matches[1];
-                } else if ($part === 'DELETE' && preg_match('/FROM\s*`?(\w*)`?/m', $query, $matches)) {
+                } elseif ($part === 'DELETE' && preg_match('/FROM\s*`?(\w*)`?/m', $query, $matches)) {
                     $spanTitle .= '.' . $matches[1];
                 }
 
                 $builder = (new CachedInstrumentation('io.opentelemetry.contrib.php.shopware'))
                     ->tracer()
                     ->spanBuilder($spanTitle)
-                    ->setSpanKind(SpanKind::KIND_SERVER)
+                    ->setSpanKind(SpanKind::KIND_CLIENT)
                     ->setAttribute(TraceAttributes::DB_STATEMENT, $query)
                     ->setAttribute(TraceAttributes::CODE_FUNCTION, $function)
                     ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
@@ -86,7 +86,7 @@ final class ConnectionInstrumentation
                 Statement $repository,
                 array $params,
                 mixed $ret,
-                ?Throwable $exception
+                ?Throwable $exception,
             ) {
                 $scope = Context::storage()->scope();
                 if (null === $scope) {
@@ -100,20 +100,23 @@ final class ConnectionInstrumentation
                 }
 
                 $span->end();
-            }
+            },
         );
     }
 
+    /**
+     * @return array<string, mixed>|null
+     */
     private static function getBacktrace(): ?array
     {
         $backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 10);
 
         foreach ($backtrace as $trace) {
             if (isset($trace['class']) && (
-                    str_starts_with($trace['class'], 'Doctrine\\DBAL') ||
+                str_starts_with($trace['class'], 'Doctrine\\DBAL') ||
                     str_starts_with($trace['class'], 'Shopware\\OpenTelemetry\\') ||
                     str_starts_with($trace['class'], 'Shopware\Core\Framework\DataAbstractionLayer')
-                )) {
+            )) {
                 continue;
             }
 

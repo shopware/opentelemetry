@@ -5,6 +5,7 @@ namespace Shopware\OpenTelemetry\Profiler;
 use OpenTelemetry\API\Globals;
 use OpenTelemetry\API\Trace\SpanInterface;
 use OpenTelemetry\API\Trace\TracerInterface;
+use OpenTelemetry\Context\Context;
 use Shopware\Core\Profiling\Integration\ProfilerInterface;
 
 class OtelProfiler implements ProfilerInterface
@@ -25,6 +26,9 @@ class OtelProfiler implements ProfilerInterface
         $span = $tracer->spanBuilder($title)
             ->setAttribute('category', $category);
 
+        $parent = Context::getCurrent();
+        $span = $span->setParent($parent);
+
         foreach ($tags as $k => $v) {
             if (!is_string($k)) {
                 continue;
@@ -33,12 +37,20 @@ class OtelProfiler implements ProfilerInterface
             $span = $span->setAttribute($k, $v);
         }
 
-        $this->spans[$title] = $span->startSpan();
+        $span = $span->startSpan();
+        $this->spans[$title] = $span;
+        Context::storage()->attach($span->storeInContext($parent));
     }
 
     public function stop(string $title): void
     {
         $span = $this->spans[$title] ?? null;
+
+        $scope = Context::storage()->scope();
+        if (null === $scope) {
+            return;
+        }
+        $scope->detach();
 
         if ($span) {
             $span->end();
@@ -49,6 +61,7 @@ class OtelProfiler implements ProfilerInterface
     public function getTracer(): TracerInterface
     {
         $tracer = Globals::tracerProvider();
+
         return $tracer->getTracer('shopware');
     }
 }
