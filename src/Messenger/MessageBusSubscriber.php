@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Shopware\OpenTelemetry\Messenger;
 
 use OpenTelemetry\API\Globals;

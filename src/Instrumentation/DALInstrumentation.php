@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Shopware\OpenTelemetry\Instrumentation;
 
 use OpenTelemetry\API\Instrumentation\CachedInstrumentation;
@@ -9,8 +11,6 @@ use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
 use OpenTelemetry\SemConv\TraceAttributes;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
-use Shopware\Core\Framework\DataAbstractionLayer\Search\AggregationResult\AggregationResultCollection;
-use Shopware\Core\Framework\DataAbstractionLayer\Search\EntitySearchResult;
 
 use function OpenTelemetry\Instrumentation\hook;
 

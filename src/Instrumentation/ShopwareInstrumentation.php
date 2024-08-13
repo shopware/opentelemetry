@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Shopware\OpenTelemetry\Instrumentation;
 
 use OpenTelemetry\API\Instrumentation\CachedInstrumentation;
