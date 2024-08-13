@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Shopware\OpenTelemetry\Tests\Integration;
 
 use OpenTelemetry\API\Metrics\MeterInterface;

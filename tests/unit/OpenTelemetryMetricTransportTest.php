@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Shopware\OpenTelemetry\Tests\Unit;
 
 use OpenTelemetry\API\Metrics\CounterInterface;
