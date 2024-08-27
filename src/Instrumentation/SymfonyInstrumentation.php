@@ -4,14 +4,13 @@ declare(strict_types=1);
 
 namespace Shopware\OpenTelemetry\Instrumentation;
 
-use OpenTelemetry\API\Globals;
 use OpenTelemetry\API\Instrumentation\CachedInstrumentation;
 use OpenTelemetry\API\Trace\Span;
-use OpenTelemetry\API\Trace\SpanInterface;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
 use Shopware\Core\Framework\Adapter\Kernel\HttpKernel;
+use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Throwable;
 use OpenTelemetry\SemConv\TraceAttributes;
@@ -26,17 +25,23 @@ final class SymfonyInstrumentation
 {
     public static function register(): void
     {
+        self::instrumentKernel();
+        self::instrumentEventDispatcher();
+    }
+
+    private static function instrumentKernel(): void
+    {
         hook(
             HttpKernel::class,
             'handle',
             pre: static function (
                 HttpKernel $kernel,
-                array $params,
-                string $class,
-                string $function,
-                ?string $filename,
-                ?int $lineno,
-            ): array {
+                array      $params,
+                string     $class,
+                string     $function,
+                ?string    $filename,
+                ?int       $lineno,
+            ) {
                 $instrumentation = new CachedInstrumentation('io.opentelemetry.contrib.php.symfony');
                 $request = ($params[0] instanceof Request) ? $params[0] : null;
                 $type = $params[1] ?? HttpKernelInterface::MAIN_REQUEST;
@@ -62,31 +67,14 @@ final class SymfonyInstrumentation
                     ->setAttribute(TraceAttributes::CODE_LINENO, $lineno);
 
                 $parent = Context::getCurrent();
-                if ($request) {
-                    $parent = Globals::propagator()->extract($request, RequestPropagationGetter::instance());
-                    $span = $builder
-                        ->setParent($parent)
-                        ->setAttribute(TraceAttributes::URL_FULL, $request->getUri())
-                        ->setAttribute(TraceAttributes::HTTP_REQUEST_METHOD, $request->getMethod())
-                        ->setAttribute(TraceAttributes::HTTP_REQUEST_BODY_SIZE, $request->headers->get('Content-Length'))
-                        ->setAttribute(TraceAttributes::URL_SCHEME, $request->getScheme())
-                        ->setAttribute(TraceAttributes::URL_PATH, $request->getPathInfo())
-                        ->setAttribute(TraceAttributes::USER_AGENT_ORIGINAL, $request->headers->get('User-Agent'))
-                        ->setAttribute(TraceAttributes::SERVER_ADDRESS, $request->getHost())
-                        ->setAttribute(TraceAttributes::SERVER_PORT, $request->getPort())
-                        ->startSpan();
-                    $request->attributes->set(SpanInterface::class, $span);
-                } else {
-                    $span = $builder->startSpan();
-                }
-                Context::storage()->attach($span->storeInContext($parent));
 
-                return [$request];
+                $span = $builder->setParent($parent)->startSpan();
+                Context::storage()->attach($span->storeInContext($parent));
             },
             post: static function (
                 HttpKernel $kernel,
-                array $params,
-                ?Response $response,
+                array      $params,
+                ?Response  $response,
                 ?Throwable $exception,
             ): void {
                 $scope = Context::storage()->scope();
@@ -156,11 +144,11 @@ final class SymfonyInstrumentation
             'handleThrowable',
             pre: static function (
                 HttpKernel $kernel,
-                array $params,
-                string $class,
-                string $function,
-                ?string $filename,
-                ?int $lineno,
+                array      $params,
+                string     $class,
+                string     $function,
+                ?string    $filename,
+                ?int       $lineno,
             ): array {
                 /** @var \Throwable $throwable */
                 $throwable = $params[0];
@@ -172,6 +160,60 @@ final class SymfonyInstrumentation
                     ->setStatus(StatusCode::STATUS_ERROR, $throwable->getMessage());
 
                 return $params;
+            },
+        );
+    }
+
+    private static function instrumentEventDispatcher(): void
+    {
+        hook(
+            EventDispatcher::class,
+            'dispatch',
+            pre: static function (
+                EventDispatcher $dispatcher,
+                array           $params,
+                string          $class,
+                string          $function,
+                ?string         $filename,
+                ?int            $lineno,
+            ) {
+                $instrumentation = new CachedInstrumentation('io.opentelemetry.contrib.php.symfony');
+                $eventClass = $params[0]::class;
+                $name = sprintf('EventDispatcher::dispatch(%s)', $eventClass);
+
+                $builder = $instrumentation
+                    ->tracer()
+                    ->spanBuilder($name)
+                    ->setSpanKind(SpanKind::KIND_INTERNAL)
+                    ->setAttribute(TraceAttributes::CODE_FUNCTION, $function)
+                    ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
+                    ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
+                    ->setAttribute(TraceAttributes::CODE_LINENO, $lineno)
+                    ->setAttribute(TraceAttributes::EVENT_NAME, $eventClass);
+
+                $parent = Context::getCurrent();
+                $span = $builder->setParent($parent)->startSpan();
+                Context::storage()->attach($span->storeInContext($parent));
+            },
+            post: static function (
+                EventDispatcher $dispatcher,
+                array           $params,
+                object         $return,
+                ?\Throwable     $exception,
+            ) {
+                $scope = Context::storage()->scope();
+                if (null === $scope) {
+                    return;
+                }
+                $scope->detach();
+                $span = Span::fromContext($scope->context());
+
+                if ($exception !== null) {
+                    $span->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());
+                    $span->recordException($exception);
+                }
+
+                $span->end();
             },
         );
     }
