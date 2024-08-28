@@ -67,11 +67,18 @@ services:
       - DD_SITE=${DD_SITE}
       - DD_DOGSTATSD_NON_LOCAL_TRAFFIC=true
       - DD_OTLP_CONFIG_RECEIVER_PROTOCOLS_GRPC_ENDPOINT=0.0.0.0:4317
+      # enables resource attributes as tags (by default only some allowed: https://docs.datadoghq.com/opentelemetry/schema_semantics/semantic_mapping/?tab=datadogagent§)
+      - DD_OTLP_CONFIG_METRICS_RESOURCE_ATTRIBUTES_AS_TAGS=true
+      # enables histograms as heatmaps
+      - DD_OTLP_CONFIG_METRICS_HISTOGRAMS_MODE=counters
+      - DD_OTLP_CONFIG_METRICS_HISTOGRAMS_SEND_AGGREGATION_METRICS=true
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - /proc/:/host/proc/:ro
       - /sys/fs/cgroup/:/host/sys/fs/cgroup:ro
       - /var/lib/docker/containers:/var/lib/docker/containers:ro
+    ports:
+      - "14317:4317"  # otlp grpc
     image: gcr.io/datadoghq/agent:7
 
 volumes:

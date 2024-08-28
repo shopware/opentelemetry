@@ -33,6 +33,7 @@ exporters:
       site: ${env:DD_SITE}
       key: ${env:DD_API_KEY}
     metrics:
+      resource_attributes_as_tags: true
       histograms:
         mode: counters
         send_aggregation_metrics: true
