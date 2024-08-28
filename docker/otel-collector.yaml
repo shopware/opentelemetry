@@ -24,6 +24,8 @@ exporters:
     # adding labels to the metrics
     # const_labels:
     #   src: shopware
+    resource_to_telemetry_conversion:
+      enabled: true
     send_timestamps: false
     metric_expiration: 180m
   # exporter to datadog using datadog api
@@ -40,6 +42,13 @@ exporters:
     traces:
       # trace_buffer: 10
 
+processors:
+  batch:
+  deltatocumulative:
+    max_stale: 60m
+    max_streams: 0
+
+
 service:
   telemetry:
     logs:
@@ -53,8 +62,12 @@ service:
     logs:
       receivers: [otlp]
       exporters: [loki, logging]
-    metrics:
+    metrics/delta:
       receivers: [otlp]
       # if you want to export through datadog agent, not to api directly, use otlp/datadog instead of datadog
       # in such case otlp/datadog exporter have to be enabled in exporters section
-      exporters: [prometheus, debug, datadog]
+      exporters: [debug, datadog]
+    metrics/cumulative:
+      receivers: [otlp]
+      processors: [deltatocumulative]
+      exporters: [prometheus]
