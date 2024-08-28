@@ -198,7 +198,7 @@ final class SymfonyInstrumentation
             post: static function (
                 EventDispatcher $dispatcher,
                 array           $params,
-                object         $return,
+                ?object         $return,
                 ?\Throwable     $exception,
             ) {
                 $scope = Context::storage()->scope();
