@@ -2,31 +2,29 @@
 
 declare(strict_types=1);
 
-namespace Shopware\OpenTelemetry\Tests\Unit;
+namespace Shopware\OpenTelemetry\Tests\Unit\Metrics\Transports;
 
 use OpenTelemetry\API\Metrics\CounterInterface;
 use OpenTelemetry\API\Metrics\HistogramInterface;
 use OpenTelemetry\API\Metrics\MeterInterface;
+use OpenTelemetry\API\Metrics\MeterProviderInterface;
 use OpenTelemetry\API\Metrics\ObservableGaugeInterface;
 use OpenTelemetry\API\Metrics\ObserverInterface;
 use OpenTelemetry\API\Metrics\UpDownCounterInterface;
-use OpenTelemetry\Context\ContextInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
-use Shopware\Core\Framework\Telemetry\Metrics\Exception\MetricNotSupportedException;
-use Shopware\Core\Framework\Telemetry\Metrics\Metric\Counter;
-use Shopware\Core\Framework\Telemetry\Metrics\Metric\Gauge;
-use Shopware\Core\Framework\Telemetry\Metrics\Metric\Histogram;
-use Shopware\Core\Framework\Telemetry\Metrics\Metric\MetricInterface;
-use Shopware\Core\Framework\Telemetry\Metrics\Metric\UpDownCounter;
+use Shopware\Core\Framework\Telemetry\Metrics\Metric\ConfiguredMetric;
+use Shopware\Core\Framework\Telemetry\Metrics\Metric\Metric;
+use Shopware\Core\Framework\Telemetry\Metrics\Metric\Type;
 use Shopware\OpenTelemetry\Feature;
+use Shopware\OpenTelemetry\Metrics\MetricNameFormatter;
 use Shopware\OpenTelemetry\Metrics\Transports\OpenTelemetryMetricTransport;
 
 /**
- * @phpstan-import-type Attributes from OpenTelemetryMetricTransport
+ * @phpstan-type Attributes iterable<non-empty-string, string|bool|float|int>
  */
 #[CoversClass(OpenTelemetryMetricTransport::class)]
 #[UsesClass(Feature::class)]
@@ -38,9 +36,9 @@ class OpenTelemetryMetricTransportTest extends TestCase
     private $meterMock;
 
     /**
-     * @var ContextInterface&\PHPUnit\Framework\MockObject\MockObject
+     * @var MeterProviderInterface&\PHPUnit\Framework\MockObject\MockObject
      */
-    private $contextMock;
+    private $meterProviderMock;
 
     public function setUp(): void
     {
@@ -49,11 +47,19 @@ class OpenTelemetryMetricTransportTest extends TestCase
         }
 
         $this->meterMock = $this->createMock(MeterInterface::class);
-        $this->contextMock = $this->createMock(ContextInterface::class);
+        $this->meterProviderMock = $this->createMock(MeterProviderInterface::class);
+        $this->meterProviderMock
+            ->method('getMeter')
+            ->willReturn($this->meterMock);
+    }
+
+    private function createTransport(string $namespace): OpenTelemetryMetricTransport
+    {
+        return new OpenTelemetryMetricTransport($this->meterProviderMock, new MetricNameFormatter($namespace), $namespace);
     }
 
     /**
-     * @return array<string, array{metric: MetricInterface, name: string, value: int|float, description: string|null, unit: string|null}>
+     * @return array{0: array{}}|array<string, array{metric: Metric, name: string, value: int|float, description: string|null, unit: string|null, labels: array<non-empty-string, bool|float|int|string>}>
      */
     public static function getMetrics(): array
     {
@@ -63,94 +69,73 @@ class OpenTelemetryMetricTransportTest extends TestCase
 
         return [
             'Counter' => [
-                'metric' => new Counter('cnt', 1, 'desc', 'count'),
+                'metric' => new Metric(new ConfiguredMetric('cnt', 1, []), Type::COUNTER, 'desc', 'count'),
                 'name' => 'cnt',
                 'value' => 1,
                 'description' => 'desc',
                 'unit' => 'count',
+                'labels' => [],
+            ],
+            'CounterWithLabels' => [
+                'metric' => new Metric(new ConfiguredMetric('cnt', 1, ['myLabel' => 'myValue']), Type::COUNTER, 'desc', 'count'),
+                'name' => 'cnt',
+                'value' => 1,
+                'description' => 'desc',
+                'unit' => 'count',
+                'labels' => ['myLabel' => 'myValue'],
             ],
             'UpDowncounter' => [
-                'metric' => new UpDownCounter('udc', 10, 'ud cnt', null),
+                'metric' => new Metric(new ConfiguredMetric('udc', 10, []), Type::UPDOWN_COUNTER, 'ud cnt', null),
                 'name' => 'udc',
                 'value' => 10,
                 'description' => 'ud cnt',
                 'unit' => null,
+                'labels' => [],
             ],
             'Histogram' => [
-                'metric' => new Histogram('hist', 100, 'histogram', 'ms'),
+                'metric' => new Metric(new ConfiguredMetric('hist', 100, []), Type::HISTOGRAM, 'histogram', 'ms'),
                 'name' => 'hist',
                 'value' => 100,
                 'description' => 'histogram',
                 'unit' => 'ms',
+                'labels' => [],
             ],
             'Gauge' => [
-                'metric' => new Gauge('gauge', 11, 'Number of megabytes', 'MB'),
+                'metric' => new Metric(new ConfiguredMetric('gauge', 11, []), Type::GAUGE, 'Number of megabytes', 'MB'),
                 'name' => 'gauge',
                 'value' => 11,
                 'description' => 'Number of megabytes',
                 'unit' => 'MB',
+                'labels' => [],
             ],
         ];
     }
 
-    public function testEmitUnsupported(): void
-    {
-        $this->expectException(MetricNotSupportedException::class);
-        $transport = new OpenTelemetryMetricTransport('test.namespace', $this->createMock(MeterInterface::class));
-        $transport->emit($this->createMock(MetricInterface::class));
-    }
-
+    /**
+     * @param array<non-empty-string, bool|float|int|string> $labels
+     */
     #[DataProvider('getMetrics')]
-    public function testEmit(MetricInterface $metric, string $name, int|float $value, ?string $description, ?string $unit): void
+    public function testEmit(Metric $metric, string $name, int|float $value, ?string $description, ?string $unit, array $labels): void
     {
         $namespace = 'com.shopware.opentelemetry';
 
-        match (true) {
-            $metric instanceof UpDownCounter => $this->expectsUpDownCounter($this->meterMock, null, $namespace, $name, $value, $description, $unit, []),
-            $metric instanceof Counter => $this->expectsCounter($this->meterMock, null, $namespace, $name, $value, $description, $unit, []),
-            $metric instanceof Histogram => $this->expectsHistogram($this->meterMock, null, $namespace, $name, $value, $description, $unit, []),
-            $metric instanceof Gauge => $this->expectsGauge($this->meterMock, null, $namespace, $name, $value, $description, $unit, []),
-            default => self::fail('Data provider returned unsupported metric type'),
+        match ($metric->type) {
+            Type::UPDOWN_COUNTER => $this->expectsUpDownCounter($this->meterMock, null, $namespace, $name, $value, $description, $unit, $labels),
+            Type::COUNTER => $this->expectsCounter($this->meterMock, null, $namespace, $name, $value, $description, $unit, $labels),
+            Type::HISTOGRAM => $this->expectsHistogram($this->meterMock, null, $namespace, $name, $value, $description, $unit, $labels),
+            Type::GAUGE => $this->expectsGauge($this->meterMock, null, $namespace, $name, $value, $description, $unit, $labels),
         };
 
-        (new OpenTelemetryMetricTransport($namespace, $this->meterMock))->emit($metric);
+        $this->createTransport($namespace)->emit($metric);
     }
 
-    public function testHandleCounter(): void
+    public function testForceFlush(): void
     {
-        $attributes = ['attribute' => 'value'];
-
-        $this->expectsCounter($this->meterMock, $this->contextMock, 'test.namespace', 'test_counter', 3, 'description', 'unit', $attributes);
-
-        $metric = new Counter('test_counter', 3, 'description', 'unit');
-        (new OpenTelemetryMetricTransport('test.namespace', $this->meterMock))->handleCounter($metric, $attributes, $this->contextMock);
-    }
-
-    public function testHandleUpDownCounter(): void
-    {
-        $attributes = ['hostname' => 'api'];
-        $this->expectsUpDownCounter($this->meterMock, $this->contextMock, 'other.namespace', 'test_up_down_counter', -5, 'up down counter with negative value', 'meters', $attributes);
-
-        $metric = new UpDownCounter('test_up_down_counter', -5, 'up down counter with negative value', 'meters');
-        (new OpenTelemetryMetricTransport('other.namespace', $this->meterMock))->handleUpDownCounter($metric, $attributes, $this->contextMock);
-    }
-
-    public function testHandleHistogram(): void
-    {
-        $attributes = [];
-        $this->expectsHistogram($this->meterMock, $this->contextMock, 'other.namespace', 'test_histogram', 300, null, null, $attributes);
-
-        $metric = new Histogram('test_histogram', 300);
-        (new OpenTelemetryMetricTransport('other.namespace', $this->meterMock))->handleHistogram($metric, $attributes, $this->contextMock);
-    }
-
-    public function testHandleGauge(): void
-    {
-        $attributes = ['attribute' => 'value'];
-        $this->expectsGauge($this->meterMock, $this->contextMock, 'my.gauge.namespace', 'test_gauge', 42, 'Number of megabytes', 'MB', $attributes);
-
-        $metric = new Gauge('test_gauge', 42, 'Number of megabytes', 'MB');
-        (new OpenTelemetryMetricTransport('my.gauge.namespace', $this->meterMock))->handleGauge($metric, $attributes, $this->contextMock);
+        $meterProviderMock = $this->createMock(\OpenTelemetry\SDK\Metrics\MeterProviderInterface::class);
+        $meterProviderMock->expects(static::once())
+            ->method('forceFlush')->willReturn(true);
+        $transport = (new OpenTelemetryMetricTransport($meterProviderMock, new MetricNameFormatter('namespace'), 'namespace'));
+        static::assertTrue($transport->forceFlush());
     }
 
     /**

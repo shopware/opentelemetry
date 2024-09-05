@@ -1,0 +1,10 @@
+# replace phpstan.neon.dist file content with this content after metrics release
+parameters:
+    phpVersion: 80200
+    level: max
+    paths:
+        - src
+        - tests
+    reportUnmatchedIgnoredErrors: true
+    excludePaths:
+    ignoreErrors:

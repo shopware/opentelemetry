@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Shopware\OpenTelemetry;
 
-use OpenTelemetry\API\Metrics\MeterInterface;
 use Shopware\OpenTelemetry\Logging\OpenTelemetryLoggerFactory;
 use Shopware\OpenTelemetry\Messenger\MessageBusSubscriber;
-use Shopware\OpenTelemetry\Metrics\Transports\OpenTelemetryMeterFactory;
-use Shopware\OpenTelemetry\Metrics\Transports\OpenTelemetryMetricTransport;
+use Shopware\OpenTelemetry\Metrics\MetricNameFormatter;
+use Shopware\OpenTelemetry\Metrics\Transports\OpenTelemetryMeterProviderFactory;
+use Shopware\OpenTelemetry\Metrics\Transports\OpenTelemetryMetricTransportFactory;
 use Shopware\OpenTelemetry\Profiler\OtelProfiler;
 use OpenTelemetry\Contrib\Logs\Monolog\Handler;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
@@ -76,15 +76,18 @@ class OpenTelemetryShopwareBundle extends AbstractBundle
 
         if ($metricsConfig['enabled']) {
             $container->services()
-                ->set(MeterInterface::class)
-                ->factory([OpenTelemetryMeterFactory::class, 'createMeter'])
+                ->set(MetricNameFormatter::class)
                 ->arg('$namespace', $namespace);
 
             $container->services()
-                ->set(OpenTelemetryMetricTransport::class)
-                ->arg('$meter', service(MeterInterface::class))
+                ->set(OpenTelemetryMeterProviderFactory::class);
+
+            $container->services()
+                ->set(OpenTelemetryMetricTransportFactory::class)
                 ->arg('$namespace', $namespace)
-                ->tag('shopware.metric_transport');
+                ->arg('$formatter', service(MetricNameFormatter::class))
+                ->arg('$meterProviderFactory', service(OpenTelemetryMeterProviderFactory::class))
+                ->tag('shopware.metric_transport_factory');
         }
     }
 }

@@ -12,9 +12,9 @@
     "type": "library",
     "license": "Apache-2.0",
     "prefer-stable": true,
-    "minimum-stability": "beta",
+    "minimum-stability": "stable",
     "require": {
-        "php": "^8.1",
+        "php": "^8.2",
         "ext-opentelemetry": "*",
         "monolog/monolog": "2.* || 3.*",
         "shopware/core": "^6.6",
@@ -29,7 +29,9 @@
         "phpstan/phpstan": "^1.11",
         "phpstan/phpstan-symfony": "^1.4",
         "phpstan/extension-installer": "^1.4",
-        "opensearch-project/opensearch-php": "^2.0"
+        "opensearch-project/opensearch-php": "^2.0",
+        "open-telemetry/sdk": "^1.0",
+        "zalas/phpunit-globals": "^3.3"
     },
     "suggest": {
         "open-telemetry/opentelemetry-logger-monolog": "Monolog logger for OpenTelemetry",

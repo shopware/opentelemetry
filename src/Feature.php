@@ -8,6 +8,6 @@ class Feature
 {
     public static function metricsSupported(): bool
     {
-        return interface_exists('Shopware\Core\Framework\Telemetry\Metrics\MetricTransportInterface');
+        return class_exists('Shopware\Core\Framework\Telemetry\Metrics\Metric\Metric');
     }
 }
