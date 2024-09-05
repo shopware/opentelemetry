@@ -1,5 +1,5 @@
 parameters:
-    phpVersion: 80100
+    phpVersion: 80200
     level: max
     paths:
         - src
@@ -8,17 +8,19 @@ parameters:
     excludePaths:
         # ignoring errors caused by missed classes in core, should be removed after release of shopware/core with relevant classes
         - src/Metrics/Transports/OpenTelemetryMetricTransport.php
+        - src/Metrics/Transports/OpenTelemetryMetricTransportFactory.php
+        - tests/integration/Metrics/Transports/OpenTelemetryTransportWorkflowTest.php
+        - tests/unit/Metrics/Transports/OpenTelemetryMetricTransportFactoryTest.php
     ignoreErrors:
-        # ignoring errors caused by missed classes in core, should be removed after release of shopware/core with relevant classes
+        # ignoring errors caused by missed/incompartible classes in core, should be removed after release of shopware/core with relevant classes
+        # when this breaks after core update, please replace this config with the one from phpstan.neon.dist.after_metrics_release
         -
             identifier: class.notFound
-            path: tests/unit/OpenTelemetryMetricTransportTest.php
-        -
-            identifier: argument.type
-            path: tests/unit/OpenTelemetryMetricTransportTest.php
+            message: "#.*Metric.*#"
+            paths:
+                - tests/unit/Metrics/Transports/OpenTelemetryMetricTransportTest.php
 
-        # ignoring error caused by workaround to make phpunit properly skip tests with data provider when classes are not found
         -
-            identifier: return.type
-            path: tests/unit/OpenTelemetryMetricTransportTest.php
-            count: 2
+            identifier: match.unhandled
+            path: tests/unit/Metrics/Transports/OpenTelemetryMetricTransportTest.php
+            count: 1

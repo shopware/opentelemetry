@@ -4,12 +4,11 @@ declare(strict_types=1);
 
 namespace Shopware\OpenTelemetry\Tests\Integration;
 
-use OpenTelemetry\API\Metrics\MeterInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
 use Shopware\OpenTelemetry\Feature;
-use Shopware\OpenTelemetry\Metrics\Transports\OpenTelemetryMetricTransport;
+use Shopware\OpenTelemetry\Metrics\Transports\OpenTelemetryMetricTransportFactory;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
@@ -29,10 +28,9 @@ class OpenTelemetryShopwareBundleTest extends TestCase
         $container = $this->loadBundleWithConfig($config);
 
         if (Feature::metricsSupported()) {
-            $this->assertTrue($container->has(MeterInterface::class));
-            $this->assertTrue($container->has(OpenTelemetryMetricTransport::class));
+            $this->assertTrue($container->has(OpenTelemetryMetricTransportFactory::class));
         } else {
-            $this->assertFalse($container->has(MeterInterface::class));
+            $this->assertFalse($container->has(OpenTelemetryMetricTransportFactory::class));
         }
     }
 
@@ -41,8 +39,7 @@ class OpenTelemetryShopwareBundleTest extends TestCase
         $config = ['metrics' => ['enabled' => false, 'namespace' => 'io.opentelemetry.contrib.php.shopware']];
         $container = $this->loadBundleWithConfig($config);
 
-        $this->assertFalse($container->has(MeterInterface::class));
-        $this->assertFalse($container->has(OpenTelemetryMetricTransport::class));
+        $this->assertFalse($container->has(OpenTelemetryMetricTransportFactory::class));
     }
 
     /**

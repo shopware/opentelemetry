@@ -8,6 +8,7 @@
          beStrictAboutOutputDuringTests="true"
          failOnRisky="true"
          failOnWarning="true">
+
     <testsuites>
         <testsuite name="Unit Test Suite">
             <directory>tests/unit</directory>
@@ -22,4 +23,8 @@
             <directory>src</directory>
         </include>
     </source>
+
+    <extensions>
+        <bootstrap class="Zalas\PHPUnit\Globals\AttributeExtension" />
+    </extensions>
 </phpunit>

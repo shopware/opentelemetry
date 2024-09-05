@@ -5,100 +5,67 @@ declare(strict_types=1);
 namespace Shopware\OpenTelemetry\Metrics\Transports;
 
 use OpenTelemetry\API\Metrics\MeterInterface;
+use OpenTelemetry\API\Metrics\MeterProviderInterface;
 use OpenTelemetry\API\Metrics\ObserverInterface;
-use OpenTelemetry\Context\ContextInterface;
+use Shopware\Core\Framework\Telemetry\Metrics\Metric\Metric;
+use Shopware\Core\Framework\Telemetry\Metrics\Metric\Type;
 use Shopware\Core\Framework\Telemetry\TelemetryException;
-use Shopware\Core\Framework\Telemetry\Metrics\Metric\Counter;
-use Shopware\Core\Framework\Telemetry\Metrics\Metric\Gauge;
-use Shopware\Core\Framework\Telemetry\Metrics\Metric\Histogram;
-use Shopware\Core\Framework\Telemetry\Metrics\Metric\MetricInterface;
-use Shopware\Core\Framework\Telemetry\Metrics\Metric\UpDownCounter;
 use Shopware\Core\Framework\Telemetry\Metrics\MetricTransportInterface;
+use Shopware\OpenTelemetry\Metrics\MetricNameFormatter;
 
-/**
- * @phpstan-type Attributes iterable<non-empty-string, string|bool|float|int>
- */
-class OpenTelemetryMetricTransport implements MetricTransportInterface
+readonly class OpenTelemetryMetricTransport implements MetricTransportInterface
 {
+    private MeterInterface $meter;
+
     public function __construct(
+        // careful: if link to meterProvider is removed, SDK will not transmit metrics (it uses weak references)
+        private MeterProviderInterface $meterProvider,
+        private MetricNameFormatter $formatter,
         private string $namespace,
-        private MeterInterface $meter,
-    ) {}
+    ) {
+        $this->meter = $this->meterProvider->getMeter($this->namespace);
+    }
 
-    public function emit(MetricInterface $metric): void
+
+    public function emit(Metric $metric): void
     {
-        $attributes = [];
+        $attributes = $metric->labels;
         $context = null;
+        $name = $this->formatter->format($metric->name);
 
-        match (true) {
-            $metric instanceof UpDownCounter => $this->handleUpDownCounter($metric, $attributes, $context),
-            $metric instanceof Counter => $this->handleCounter($metric, $attributes, $context),
-            $metric instanceof Histogram => $this->handleHistogram($metric, $attributes, $context),
-            $metric instanceof Gauge => $this->handleGauge($metric, $attributes, $context),
-            default => throw TelemetryException::metricNotSupported($metric, $this),
-        };
+        switch ($metric->type) {
+            case Type::UPDOWN_COUNTER:
+                $counter = $this->meter->createUpDownCounter($name, $metric->unit, $metric->description);
+                $counter->add($metric->value, $attributes, $context);
+                break;
+            case Type::COUNTER:
+                $upDownCounter = $this->meter->createCounter($name, $metric->unit, $metric->description);
+                $upDownCounter->add($metric->value, $attributes, $context);
+                break;
+            case Type::HISTOGRAM:
+                $histogram = $this->meter->createHistogram($name, $metric->unit, $metric->description);
+                $histogram->record($metric->value, $attributes, $context);
+                break;
+            case Type::GAUGE:
+                // todo: replace implementation with sync gauge as soon as it's released in SDK
+                // see https://github.com/open-telemetry/opentelemetry-php/pull/1289
+                // https://github.com/open-telemetry/opentelemetry-php/issues/1288
+                $gauge = $this->meter->createObservableGauge($name, $metric->unit, $metric->description);
+                $gauge->observe(
+                    fn(ObserverInterface $observer) => $observer->observe($metric->value, $attributes),
+                );
+                break;
+            default:
+                throw TelemetryException::metricNotSupported($metric, $this);
+        }
     }
 
-    private function formatName(string $name): string
+    public function forceFlush(): bool
     {
-        return sprintf('%s.%s', $this->namespace, $name);
-    }
+        if ($this->meterProvider instanceof \OpenTelemetry\SDK\Metrics\MeterProviderInterface) {
+            return $this->meterProvider->forceFlush();
+        }
 
-    /**
-     * @param Attributes $attributes
-     */
-    public function handleCounter(Counter $metric, iterable $attributes, ?ContextInterface $context): void
-    {
-        $this->meter
-            ->createCounter(
-                $this->formatName($metric->name),
-                $metric->unit,
-                $metric->description,
-            )->add($metric->value, $attributes, $context);
-    }
-
-    /**
-     * @param Attributes $attributes
-     */
-    public function handleUpDownCounter(UpDownCounter $metric, iterable $attributes, ?ContextInterface $context): void
-    {
-        $this->meter
-            ->createUpDownCounter(
-                $this->formatName($metric->name),
-                $metric->unit,
-                $metric->description,
-            )->add($metric->value, $attributes, $context);
-    }
-
-    /**
-     * @param Attributes $attributes
-     */
-    public function handleHistogram(Histogram $metric, iterable $attributes, ?ContextInterface $context): void
-    {
-        $this->meter
-            ->createHistogram(
-                $this->formatName($metric->name),
-                $metric->unit,
-                $metric->description,
-            )->record($metric->value, $attributes, $context);
-    }
-
-    /**
-     * @param Attributes $attributes
-     */
-    public function handleGauge(Gauge $metric, iterable $attributes, ?ContextInterface $context): void
-    {
-        // todo: replace implementation with sync gauge as soon as it's released in SDK
-        // see https://github.com/open-telemetry/opentelemetry-php/pull/1289
-        // https://github.com/open-telemetry/opentelemetry-php/issues/1288
-
-        $this->meter
-            ->createObservableGauge(
-                $this->formatName($metric->name),
-                $metric->unit,
-                $metric->description,
-            )->observe(
-                fn(ObserverInterface $observer) => $observer->observe($metric->value, $attributes),
-            );
+        return false;
     }
 }
