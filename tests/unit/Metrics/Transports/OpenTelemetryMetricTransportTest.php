@@ -5,17 +5,17 @@ declare(strict_types=1);
 namespace Shopware\OpenTelemetry\Tests\Unit\Metrics\Transports;
 
 use OpenTelemetry\API\Metrics\CounterInterface;
+use OpenTelemetry\API\Metrics\GaugeInterface;
 use OpenTelemetry\API\Metrics\HistogramInterface;
 use OpenTelemetry\API\Metrics\MeterInterface;
 use OpenTelemetry\API\Metrics\MeterProviderInterface;
-use OpenTelemetry\API\Metrics\ObservableGaugeInterface;
-use OpenTelemetry\API\Metrics\ObserverInterface;
 use OpenTelemetry\API\Metrics\UpDownCounterInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use Shopware\Core\Framework\Telemetry\Metrics\Config\MetricConfig;
 use Shopware\Core\Framework\Telemetry\Metrics\Metric\ConfiguredMetric;
 use Shopware\Core\Framework\Telemetry\Metrics\Metric\Metric;
 use Shopware\Core\Framework\Telemetry\Metrics\Metric\Type;
@@ -28,6 +28,7 @@ use Shopware\OpenTelemetry\Metrics\Transports\OpenTelemetryMetricTransport;
  */
 #[CoversClass(OpenTelemetryMetricTransport::class)]
 #[UsesClass(Feature::class)]
+#[UsesClass(MetricNameFormatter::class)]
 class OpenTelemetryMetricTransportTest extends TestCase
 {
     /**
@@ -69,7 +70,16 @@ class OpenTelemetryMetricTransportTest extends TestCase
 
         return [
             'Counter' => [
-                'metric' => new Metric(new ConfiguredMetric('cnt', 1, []), Type::COUNTER, 'desc', 'count'),
+                'metric' => new Metric(
+                    new ConfiguredMetric('cnt', 1, []),
+                    new MetricConfig(
+                        name: 'cnt',
+                        description: 'desc',
+                        type: Type::COUNTER,
+                        enabled: true,
+                        unit: 'count',
+                    ),
+                ),
                 'name' => 'cnt',
                 'value' => 1,
                 'description' => 'desc',
@@ -77,7 +87,17 @@ class OpenTelemetryMetricTransportTest extends TestCase
                 'labels' => [],
             ],
             'CounterWithLabels' => [
-                'metric' => new Metric(new ConfiguredMetric('cnt', 1, ['myLabel' => 'myValue']), Type::COUNTER, 'desc', 'count'),
+                'metric' => new Metric(
+                    new ConfiguredMetric('cnt', 1, ['myLabel' => 'myValue']),
+                    new MetricConfig(
+                        name: 'cnt',
+                        description: 'desc',
+                        type: Type::COUNTER,
+                        enabled: true,
+                        unit: 'count',
+                        labels: ['myLabel' => ['allowed_values' => ['myValue']]],
+                    ),
+                ),
                 'name' => 'cnt',
                 'value' => 1,
                 'description' => 'desc',
@@ -85,7 +105,15 @@ class OpenTelemetryMetricTransportTest extends TestCase
                 'labels' => ['myLabel' => 'myValue'],
             ],
             'UpDowncounter' => [
-                'metric' => new Metric(new ConfiguredMetric('udc', 10, []), Type::UPDOWN_COUNTER, 'ud cnt', null),
+                'metric' => new Metric(
+                    new ConfiguredMetric('udc', 10, []),
+                    new MetricConfig(
+                        name: 'udc',
+                        description: 'ud cnt',
+                        type: Type::UPDOWN_COUNTER,
+                        enabled: true,
+                    ),
+                ),
                 'name' => 'udc',
                 'value' => 10,
                 'description' => 'ud cnt',
@@ -93,7 +121,16 @@ class OpenTelemetryMetricTransportTest extends TestCase
                 'labels' => [],
             ],
             'Histogram' => [
-                'metric' => new Metric(new ConfiguredMetric('hist', 100, []), Type::HISTOGRAM, 'histogram', 'ms'),
+                'metric' => new Metric(
+                    new ConfiguredMetric('hist', 100, []),
+                    new MetricConfig(
+                        name: 'hist',
+                        description: 'histogram',
+                        type: Type::HISTOGRAM,
+                        enabled: true,
+                        unit: 'ms',
+                    ),
+                ),
                 'name' => 'hist',
                 'value' => 100,
                 'description' => 'histogram',
@@ -101,7 +138,16 @@ class OpenTelemetryMetricTransportTest extends TestCase
                 'labels' => [],
             ],
             'Gauge' => [
-                'metric' => new Metric(new ConfiguredMetric('gauge', 11, []), Type::GAUGE, 'Number of megabytes', 'MB'),
+                'metric' => new Metric(
+                    new ConfiguredMetric('gauge', 11, []),
+                    new MetricConfig(
+                        name: 'gauge',
+                        description: 'Number of megabytes',
+                        type: Type::GAUGE,
+                        enabled: true,
+                        unit: 'MB',
+                    ),
+                ),
                 'name' => 'gauge',
                 'value' => 11,
                 'description' => 'Number of megabytes',
@@ -196,24 +242,16 @@ class OpenTelemetryMetricTransportTest extends TestCase
      */
     private function expectsGauge(MockObject $meter, ?MockObject $context, string $namespace, string $metricName, float|int $value, ?string $description, ?string $unit, iterable $attributes): void
     {
-        $gauge = $this->createMock(ObservableGaugeInterface::class);
+        $gauge = $this->createMock(GaugeInterface::class);
 
         $meter->expects(static::once())
-            ->method('createObservableGauge')
+            ->method('createGauge')
             ->with(\sprintf("%s.%s", $namespace, $metricName), $unit, $description)
             ->willReturn($gauge);
 
-        $observer = $this->createMock(ObserverInterface::class);
-
         $gauge->expects(static::once())
-            ->method('observe')
-            ->with(static::callback(function ($callback) use ($observer) {
-                $callback($observer);
-                return true;
-            }));
+            ->method('record')
+            ->with($value, $attributes, $context);
 
-        $observer->expects(static::once())
-            ->method('observe')
-            ->with($value, $attributes);
     }
 }

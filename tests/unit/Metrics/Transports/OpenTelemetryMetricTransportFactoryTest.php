@@ -6,6 +6,7 @@ namespace Shopware\OpenTelemetry\Tests\Unit\Metrics\Transports;
 
 use OpenTelemetry\API\Metrics\MeterInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
 use Shopware\Core\Framework\Telemetry\Metrics\Config\MetricConfig;
 use Shopware\Core\Framework\Telemetry\Metrics\Config\TransportConfig;
@@ -18,6 +19,8 @@ use Shopware\OpenTelemetry\Metrics\Transports\OpenTelemetryMeterProviderFactory;
 use OpenTelemetry\API\Metrics\MeterProviderInterface;
 
 #[CoversClass(OpenTelemetryMetricTransportFactory::class)]
+#[UsesClass(Feature::class)]
+#[UsesClass(OpenTelemetryMetricTransport::class)]
 class OpenTelemetryMetricTransportFactoryTest extends TestCase
 {
     public function testCreate(): void

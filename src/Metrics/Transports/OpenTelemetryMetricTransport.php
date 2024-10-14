@@ -6,7 +6,6 @@ namespace Shopware\OpenTelemetry\Metrics\Transports;
 
 use OpenTelemetry\API\Metrics\MeterInterface;
 use OpenTelemetry\API\Metrics\MeterProviderInterface;
-use OpenTelemetry\API\Metrics\ObserverInterface;
 use Shopware\Core\Framework\Telemetry\Metrics\Metric\Metric;
 use Shopware\Core\Framework\Telemetry\Metrics\Metric\Type;
 use Shopware\Core\Framework\Telemetry\TelemetryException;
@@ -47,13 +46,8 @@ readonly class OpenTelemetryMetricTransport implements MetricTransportInterface
                 $histogram->record($metric->value, $attributes, $context);
                 break;
             case Type::GAUGE:
-                // todo: replace implementation with sync gauge as soon as it's released in SDK
-                // see https://github.com/open-telemetry/opentelemetry-php/pull/1289
-                // https://github.com/open-telemetry/opentelemetry-php/issues/1288
-                $gauge = $this->meter->createObservableGauge($name, $metric->unit, $metric->description);
-                $gauge->observe(
-                    fn(ObserverInterface $observer) => $observer->observe($metric->value, $attributes),
-                );
+                $gauge = $this->meter->createGauge($name, $metric->unit, $metric->description);
+                $gauge->record($metric->value, $attributes, $context);
                 break;
             default:
                 throw TelemetryException::metricNotSupported($metric, $this);

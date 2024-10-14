@@ -48,7 +48,7 @@ class OpenTelemetryMeterProviderFactory
      *   - https://github.com/open-telemetry/opentelemetry-php/blob/main/src/SDK/Metrics/MeterProviderBuilder.php
      *   - https://github.com/open-telemetry/opentelemetry-php/blob/main/examples/metrics/basic.php
      *
-     * @param array<string,array<float|int>> $buckets
+     * @param array<non-empty-string,array<float|int>> $buckets
      */
     public function createMeterProvider(array $buckets): MeterProviderInterface
     {
@@ -99,7 +99,7 @@ class OpenTelemetryMeterProviderFactory
     }
 
     /**
-     * @param array<string, array<float|int>> $buckets
+     * @param array<non-empty-string, array<float|int>> $buckets
      */
     private function registerBucketViews(array $buckets, CriteriaViewRegistry $registry): void
     {

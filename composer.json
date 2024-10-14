@@ -18,7 +18,7 @@
         "ext-opentelemetry": "*",
         "monolog/monolog": "2.* || 3.*",
         "shopware/core": "^6.6",
-        "open-telemetry/api": "^1.0.3",
+        "open-telemetry/api": "^1.1",
         "open-telemetry/sem-conv": "^1.22",
         "symfony/http-kernel": "*",
         "symfony/http-client-contracts": "*"
@@ -30,7 +30,7 @@
         "phpstan/phpstan-symfony": "^1.4",
         "phpstan/extension-installer": "^1.4",
         "opensearch-project/opensearch-php": "^2.0",
-        "open-telemetry/sdk": "^1.0",
+        "open-telemetry/sdk": "^1.1",
         "zalas/phpunit-globals": "^3.3"
     },
     "suggest": {
@@ -56,7 +56,8 @@
         "allow-plugins": {
             "php-http/discovery": false,
             "symfony/runtime": false,
-            "phpstan/extension-installer": true
+            "phpstan/extension-installer": true,
+            "tbachert/spi": true
         }
     }
 }
