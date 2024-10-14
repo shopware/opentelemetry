@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Shopware\OpenTelemetry\Tests\Integration\Metrics\Transports;
 
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
 use Shopware\Core\Framework\Telemetry\Metrics\Config\MetricConfig;
 use Shopware\Core\Framework\Telemetry\Metrics\Config\TransportConfig;
@@ -21,6 +22,8 @@ use Zalas\PHPUnit\Globals\Attribute\Putenv;
 #[CoversClass(OpenTelemetryMeterProviderFactory::class)]
 #[CoversClass(OpenTelemetryMetricTransportFactory::class)]
 #[CoversClass(OpenTelemetryMetricTransport::class)]
+#[UsesClass(Feature::class)]
+#[UsesClass(MetricNameFormatter::class)]
 class OpenTelemetryTransportWorkflowTest extends TestCase
 {
     #[Putenv('OTEL_SDK_DISABLED', 'false')]
@@ -52,9 +55,13 @@ class OpenTelemetryTransportWorkflowTest extends TestCase
         $transport->emit(
             new Metric(
                 new ConfiguredMetric('testHistogram', 7, ['myLabel' => 'label']),
-                Type::HISTOGRAM,
-                'description',
-                'unit',
+                new MetricConfig(
+                    name: 'testHistogram',
+                    type: Type::HISTOGRAM,
+                    description: 'description',
+                    unit: 'unit',
+                    enabled: true,
+                ),
             ),
         );
 

@@ -6,21 +6,4 @@ parameters:
         - tests
     reportUnmatchedIgnoredErrors: true
     excludePaths:
-        # ignoring errors caused by missed classes in core, should be removed after release of shopware/core with relevant classes
-        - src/Metrics/Transports/OpenTelemetryMetricTransport.php
-        - src/Metrics/Transports/OpenTelemetryMetricTransportFactory.php
-        - tests/integration/Metrics/Transports/OpenTelemetryTransportWorkflowTest.php
-        - tests/unit/Metrics/Transports/OpenTelemetryMetricTransportFactoryTest.php
     ignoreErrors:
-        # ignoring errors caused by missed/incompartible classes in core, should be removed after release of shopware/core with relevant classes
-        # when this breaks after core update, please replace this config with the one from phpstan.neon.dist.after_metrics_release
-        -
-            identifier: class.notFound
-            message: "#.*Metric.*#"
-            paths:
-                - tests/unit/Metrics/Transports/OpenTelemetryMetricTransportTest.php
-
-        -
-            identifier: match.unhandled
-            path: tests/unit/Metrics/Transports/OpenTelemetryMetricTransportTest.php
-            count: 1

@@ -30,7 +30,10 @@ class OpenTelemetryMetricTransportFactory implements MetricTransportFactoryInter
                 && \is_array($metric->parameters['buckets'])
                 && \count($metric->parameters['buckets']) > 0
             ) {
-                $buckets[$this->formatter->format($metric->name)] = $metric->parameters['buckets'];
+                $metricName = $this->formatter->format($metric->name);
+
+                assert(!empty($metricName));
+                $buckets[$metricName] = $metric->parameters['buckets'];
             }
         }
 
