@@ -24,6 +24,8 @@ use function Symfony\Component\DependencyInjection\Loader\Configurator\service;
  */
 class OpenTelemetryShopwareBundle extends AbstractBundle
 {
+    protected string $extensionAlias = 'open_telemetry_shopware';
+
     public function build(ContainerBuilder $container)
     {
         $container
@@ -50,6 +52,7 @@ class OpenTelemetryShopwareBundle extends AbstractBundle
         $rootNode
             ->children()
                 ->arrayNode('metrics')
+                    ->addDefaultsIfNotSet()
                     ->children()
                         ->booleanNode('enabled')
                             ->defaultFalse()
