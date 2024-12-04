@@ -15,8 +15,6 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
-use Shopware\Core\Framework\Telemetry\Metrics\Config\MetricConfig;
-use Shopware\Core\Framework\Telemetry\Metrics\Metric\ConfiguredMetric;
 use Shopware\Core\Framework\Telemetry\Metrics\Metric\Metric;
 use Shopware\Core\Framework\Telemetry\Metrics\Metric\Type;
 use Shopware\OpenTelemetry\Feature;
@@ -70,16 +68,13 @@ class OpenTelemetryMetricTransportTest extends TestCase
 
         return [
             'Counter' => [
-                'metric' => new Metric(
-                    new ConfiguredMetric('cnt', 1, []),
-                    new MetricConfig(
-                        name: 'cnt',
-                        description: 'desc',
-                        type: Type::COUNTER,
-                        enabled: true,
-                        unit: 'count',
-                    ),
-                ),
+                'metric' => Metric::fromArray([
+                    'name' => 'cnt',
+                    'type' => Type::COUNTER,
+                    'value' => 1,
+                    'description' => 'desc',
+                    'unit' => 'count',
+                ]),
                 'name' => 'cnt',
                 'value' => 1,
                 'description' => 'desc',
@@ -87,17 +82,14 @@ class OpenTelemetryMetricTransportTest extends TestCase
                 'labels' => [],
             ],
             'CounterWithLabels' => [
-                'metric' => new Metric(
-                    new ConfiguredMetric('cnt', 1, ['myLabel' => 'myValue']),
-                    new MetricConfig(
-                        name: 'cnt',
-                        description: 'desc',
-                        type: Type::COUNTER,
-                        enabled: true,
-                        unit: 'count',
-                        labels: ['myLabel' => ['allowed_values' => ['myValue']]],
-                    ),
-                ),
+                'metric' => Metric::fromArray([
+                    'name' => 'cnt',
+                    'type' => Type::COUNTER,
+                    'value' => 1,
+                    'description' => 'desc',
+                    'unit' => 'count',
+                    'labels' => ['myLabel' => 'myValue'],
+                ]),
                 'name' => 'cnt',
                 'value' => 1,
                 'description' => 'desc',
@@ -105,15 +97,12 @@ class OpenTelemetryMetricTransportTest extends TestCase
                 'labels' => ['myLabel' => 'myValue'],
             ],
             'UpDowncounter' => [
-                'metric' => new Metric(
-                    new ConfiguredMetric('udc', 10, []),
-                    new MetricConfig(
-                        name: 'udc',
-                        description: 'ud cnt',
-                        type: Type::UPDOWN_COUNTER,
-                        enabled: true,
-                    ),
-                ),
+                'metric' => Metric::fromArray([
+                    'name' => 'udc',
+                    'type' => Type::UPDOWN_COUNTER,
+                    'value' => 10,
+                    'description' => 'ud cnt',
+                ]),
                 'name' => 'udc',
                 'value' => 10,
                 'description' => 'ud cnt',
@@ -121,16 +110,13 @@ class OpenTelemetryMetricTransportTest extends TestCase
                 'labels' => [],
             ],
             'Histogram' => [
-                'metric' => new Metric(
-                    new ConfiguredMetric('hist', 100, []),
-                    new MetricConfig(
-                        name: 'hist',
-                        description: 'histogram',
-                        type: Type::HISTOGRAM,
-                        enabled: true,
-                        unit: 'ms',
-                    ),
-                ),
+                'metric' => Metric::fromArray([
+                    'name' => 'hist',
+                    'type' => Type::HISTOGRAM,
+                    'value' => 100,
+                    'description' => 'histogram',
+                    'unit' => 'ms',
+                ]),
                 'name' => 'hist',
                 'value' => 100,
                 'description' => 'histogram',
@@ -138,16 +124,14 @@ class OpenTelemetryMetricTransportTest extends TestCase
                 'labels' => [],
             ],
             'Gauge' => [
-                'metric' => new Metric(
-                    new ConfiguredMetric('gauge', 11, []),
-                    new MetricConfig(
-                        name: 'gauge',
-                        description: 'Number of megabytes',
-                        type: Type::GAUGE,
-                        enabled: true,
-                        unit: 'MB',
-                    ),
-                ),
+                'metric' => Metric::fromArray([
+                    'name' => 'gauge',
+                    'type' => Type::GAUGE,
+                    'value' => 11,
+                    'description' => 'Number of megabytes',
+                    'unit' => 'MB',
+                    'labels' => [],
+                ]),
                 'name' => 'gauge',
                 'value' => 11,
                 'description' => 'Number of megabytes',
