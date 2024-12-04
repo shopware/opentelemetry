@@ -9,7 +9,6 @@ use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
 use Shopware\Core\Framework\Telemetry\Metrics\Config\MetricConfig;
 use Shopware\Core\Framework\Telemetry\Metrics\Config\TransportConfig;
-use Shopware\Core\Framework\Telemetry\Metrics\Metric\ConfiguredMetric;
 use Shopware\Core\Framework\Telemetry\Metrics\Metric\Metric;
 use Shopware\Core\Framework\Telemetry\Metrics\Metric\Type;
 use Shopware\OpenTelemetry\Feature;
@@ -53,18 +52,15 @@ class OpenTelemetryTransportWorkflowTest extends TestCase
         $this->assertInstanceOf(OpenTelemetryMetricTransport::class, $transport);
 
         $transport->emit(
-            new Metric(
-                new ConfiguredMetric('testHistogram', 7, ['myLabel' => 'label']),
-                new MetricConfig(
-                    name: 'testHistogram',
-                    type: Type::HISTOGRAM,
-                    description: 'description',
-                    unit: 'unit',
-                    enabled: true,
-                ),
-            ),
+            Metric::fromArray([
+                'name' => 'testHistogram',
+                'type' => Type::HISTOGRAM,
+                'value' => 7,
+                'labels' => ['myLabel' => 'label'],
+                'description' => 'description',
+                'unit' => 'unit',
+            ]),
         );
-
 
         $transport->forceFlush();
 
