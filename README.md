@@ -1,5 +1,7 @@
 # OpenTelemetry for Shopware 6
 
+This is not an official OpenTelemetry project. This repository contains a Shopware-specific implementation using OpenTelemetry standards.
+
 ## Requirements
 
 - `ext-opentelemetry` PHP extension
