@@ -8,14 +8,20 @@ use OpenTelemetry\API\Globals;
 use OpenTelemetry\API\Trace\SpanInterface;
 use OpenTelemetry\API\Trace\TracerInterface;
 use OpenTelemetry\Context\Context;
+use OpenTelemetry\Context\ScopeInterface;
 use Shopware\Core\Profiling\Integration\ProfilerInterface;
 
 class OtelProfiler implements ProfilerInterface
 {
     /**
-     * @var array<string, SpanInterface>
+     * @var array<string, SpanInterface[]>
      */
     private array $spans = [];
+
+    /**
+     * @var array<string, ScopeInterface[]>
+     */
+    private array $scopes = [];
 
     /**
      * @param non-empty-string $title
@@ -25,38 +31,51 @@ class OtelProfiler implements ProfilerInterface
     {
         $tracer = $this->getTracer();
 
-        $span = $tracer->spanBuilder($title)
+        $builder = $tracer->spanBuilder($title)
             ->setAttribute('category', $category);
 
         $parent = Context::getCurrent();
-        $span = $span->setParent($parent);
+        $builder = $builder->setParent($parent);
 
         foreach ($tags as $k => $v) {
             if (!is_string($k)) {
                 continue;
             }
 
-            $span = $span->setAttribute($k, $v);
+            $builder = $builder->setAttribute($k, $v);
         }
 
-        $span = $span->startSpan();
-        $this->spans[$title] = $span;
-        Context::storage()->attach($span->storeInContext($parent));
+        $span = $builder->startSpan();
+        $scope = Context::storage()->attach($span->storeInContext($parent));
+
+        $this->spans[$title][] = $span;
+        $this->scopes[$title][] = $scope;
     }
 
     public function stop(string $title): void
     {
-        $span = $this->spans[$title] ?? null;
-
-        $scope = Context::storage()->scope();
-        if (null === $scope) {
+        if (!isset($this->spans[$title]) || !isset($this->scopes[$title])) {
             return;
         }
-        $scope->detach();
 
-        if ($span) {
+        // Pop scope
+        $scope = array_pop($this->scopes[$title]);
+        if ($scope instanceof ScopeInterface) {
+            $scope->detach();
+        }
+
+        // Pop span
+        $span = array_pop($this->spans[$title]);
+        if ($span instanceof SpanInterface) {
             $span->end();
+        }
+
+        // Clean up empty stacks
+        if (empty($this->spans[$title])) {
             unset($this->spans[$title]);
+        }
+        if (empty($this->scopes[$title])) {
+            unset($this->scopes[$title]);
         }
     }
 
