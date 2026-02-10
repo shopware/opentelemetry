@@ -36,10 +36,10 @@ final class ConnectionInstrumentation
                 $backtrace = self::getBacktrace();
 
                 if ($backtrace) {
-                    $class = $backtrace['class'];
-                    $function = $backtrace['function'];
-                    $filename = $backtrace['file'];
-                    $lineno = $backtrace['line'];
+                    $class = $backtrace['class'] ?? $class;
+                    $function = $backtrace['function'] ?? $function;
+                    $filename = $backtrace['file'] ?? null;
+                    $lineno = $backtrace['line'] ?? null;
                 }
 
                 $query = trim($getter($stmt)->queryString);
