@@ -44,6 +44,12 @@ class OpenSearchInstrumentation
                     ?int $lineno,
                 ) {
                     $index = $params[0]['index'] ?? '';
+                    if (\is_array($index)) {
+                        $index = implode(',', $index);
+                    } elseif (!\is_string($index)) {
+                        $index = '<unknown>';
+                    }
+
                     $builder = (new CachedInstrumentation(self::INSTRUMENTATION_NAME))
                         ->tracer()
                         ->spanBuilder(sprintf('OpenSearch::%s index: %s', $function, $index))
