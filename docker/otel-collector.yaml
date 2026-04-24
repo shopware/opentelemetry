@@ -6,7 +6,6 @@ receivers:
       http:
         endpoint: 0.0.0.0:4318
 exporters:
-  logging:
   debug:
   otlp/tempo:
     endpoint: tempo:4317
@@ -17,8 +16,10 @@ exporters:
   #   endpoint: dd-agent:4317
   #   tls:
   #     insecure: true
-  loki:
-    endpoint: http://loki:3100/loki/api/v1/push
+  # Loki removed the legacy push API exporter from the collector; use native OTLP.
+  # https://grafana.com/docs/loki/latest/send-data/otel/
+  otlp_http/loki:
+    endpoint: http://loki:3100/otlp
   prometheus:
     endpoint: 0.0.0.0:8889
     # adding labels to the metrics
@@ -61,7 +62,7 @@ service:
       exporters: [otlp/tempo, debug, datadog]
     logs:
       receivers: [otlp]
-      exporters: [loki, logging]
+      exporters: [otlp_http/loki, debug]
     metrics/delta:
       receivers: [otlp]
       # if you want to export through datadog agent, not to api directly, use otlp/datadog instead of datadog
