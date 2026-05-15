@@ -1,5 +1,7 @@
 # OpenTelemetry for Shopware 6
 
+This package provides OpenTelemetry instrumentation for Shopware 6: tracing, metrics, and logs.
+
 ## Requirements
 
 - `ext-opentelemetry` PHP extension
@@ -11,9 +13,17 @@
 composer require shopware/opentelemetry
 ```
 
+You also need to install the OpenTelemetry SDK and selected exporter and transport. Below is an example with OTLP over gRPC:
+
+```bash
+composer require open-telemetry/sdk
+composer require open-telemetry/exporter-otlp
+composer require open-telemetry/transport-grpc
+```
+
 ## Configuration
 
-Enable open telemetry with the following environment variables:
+Enable OpenTelemetry SDK with the following environment variables:
 
 ```bash
 OTEL_PHP_AUTOLOAD_ENABLED=true
@@ -34,8 +44,6 @@ OTEL_TRACES_EXPORTER=otlp
 OTEL_EXPORTER_OTLP_PROTOCOL=grpc
 OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4317
 ```
-
-You will need to install also composer packages: `open-telemetry/transport-grpc` and `open-telemetry/exporter-otlp`.
 
 ### Enabling Shopware custom tracing
 
