@@ -1,6 +1,6 @@
 # OpenTelemetry for Shopware 6
 
-This package provides OpenTelemetry instrumentation for Shopware 6: tracing, metrics, and logs.
+This is not an official OpenTelemetry project. This repository contains a Shopware-specific implementation using OpenTelemetry standards.
 
 ## Requirements
 

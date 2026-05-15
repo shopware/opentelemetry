@@ -16,7 +16,7 @@ if (class_exists(Sdk::class) && Sdk::isInstrumentationDisabled(ShopwareInstrumen
     return;
 }
 
-if (str_contains($_SERVER['SCRIPT_NAME'], 'phpstan') || str_contains($_SERVER['SCRIPT_NAME'], 'phpunit')) {
+if (str_contains($_SERVER['SCRIPT_NAME'] ?? '', 'phpstan') || str_contains($_SERVER['SCRIPT_NAME'] ?? '', 'phpunit')) {
     return;
 }
 
