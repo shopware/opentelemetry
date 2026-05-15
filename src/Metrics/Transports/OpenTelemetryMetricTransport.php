@@ -54,10 +54,22 @@ readonly class OpenTelemetryMetricTransport implements MetricTransportInterface
         }
     }
 
+    public function flush(): void
+    {
+        if ($this->meterProvider instanceof \OpenTelemetry\SDK\Metrics\MeterProviderInterface) {
+            $this->meterProvider->forceFlush();
+        }
+    }
+
+    /**
+     * @deprecated - use flush instead
+     */
     public function forceFlush(): bool
     {
         if ($this->meterProvider instanceof \OpenTelemetry\SDK\Metrics\MeterProviderInterface) {
-            return $this->meterProvider->forceFlush();
+            $this->flush();
+
+            return true;
         }
 
         return false;
