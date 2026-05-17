@@ -11,7 +11,6 @@ use Shopware\OpenTelemetry\Metrics\Transports\OpenTelemetryMeterProviderFactory;
 use Shopware\OpenTelemetry\Metrics\Transports\OpenTelemetryMetricTransportFactory;
 use Shopware\OpenTelemetry\Profiler\OtelProfiler;
 use OpenTelemetry\Contrib\Logs\Monolog\Handler;
-use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use Symfony\Component\Config\Definition\Configurator\DefinitionConfigurator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
@@ -46,10 +45,7 @@ class OpenTelemetryShopwareBundle extends AbstractBundle
 
     public function configure(DefinitionConfigurator $definition): void
     {
-        $rootNode = $definition->rootNode();
-        \assert($rootNode instanceof ArrayNodeDefinition);
-
-        $rootNode
+        $definition->rootNode() // @phpstan-ignore class.notFound
             ->children()
                 ->arrayNode('metrics')
                     ->addDefaultsIfNotSet()
@@ -61,7 +57,7 @@ class OpenTelemetryShopwareBundle extends AbstractBundle
                             ->defaultValue('io.opentelemetry.contrib.php.shopware')
                         ->end()
                     ->end()
-                ->end()
+                ->end() // metrics
             ->end()
         ;
     }
