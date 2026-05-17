@@ -62,7 +62,7 @@ class OpenTelemetryTransportWorkflowTest extends TestCase
             ]),
         );
 
-        $transport->forceFlush();
+        $transport->flush();
 
         $output = $this->getActualOutputForAssertion();
         $data = json_decode($output, true);

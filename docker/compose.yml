@@ -1,4 +1,3 @@
-version: "3"
 services:
   # And put them in an OTEL collector pipeline...
   otel-collector:
@@ -16,7 +15,9 @@ services:
 
   # To eventually offload to Tempo...
   tempo:
-    image: grafana/tempo:latest
+    # Pin 2.x.x. Docker Hub has no rolling :2 or :2.10 tag — only full versions.
+    # Bump this patch when Grafana ships a new 2.x release.
+    image: grafana/tempo:2.10.4
     command: [ "-config.file=/etc/tempo.yaml" ]
     stop_signal: SIGKILL
     volumes:
@@ -29,6 +30,8 @@ services:
 
   prometheus:
     image: prom/prometheus:latest
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     command:
       - --config.file=/etc/prometheus.yaml
       - --web.enable-remote-write-receiver
