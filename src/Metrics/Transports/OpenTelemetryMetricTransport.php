@@ -20,9 +20,9 @@ readonly class OpenTelemetryMetricTransport implements MetricTransportInterface
         // careful: if link to meterProvider is removed, SDK will not transmit metrics (it uses weak references)
         private MeterProviderInterface $meterProvider,
         private MetricNameFormatter $formatter,
-        private string $namespace,
+        private string $instrumentationScope,
     ) {
-        $this->meter = $this->meterProvider->getMeter($this->namespace);
+        $this->meter = $this->meterProvider->getMeter($this->instrumentationScope);
     }
 
 

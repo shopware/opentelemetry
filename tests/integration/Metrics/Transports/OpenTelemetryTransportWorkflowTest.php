@@ -33,13 +33,9 @@ class OpenTelemetryTransportWorkflowTest extends TestCase
             static::markTestSkipped('Installed version of shopware/core does not support metrics');
         }
 
-        $namespace = 'test.namespace';
+        $transportFactory = new OpenTelemetryMetricTransportFactory(new OpenTelemetryMeterProviderFactory());
 
-        $nameFormatter = new MetricNameFormatter($namespace);
-        $providerFactory = new OpenTelemetryMeterProviderFactory();
-
-        $transportFactory = new OpenTelemetryMetricTransportFactory($namespace, $nameFormatter, $providerFactory);
-        $transportConfig = new TransportConfig([
+        $metricsConfig = [
             new MetricConfig(
                 name: 'testHistogram',
                 description: 'test histogram description',
@@ -47,7 +43,19 @@ class OpenTelemetryTransportWorkflowTest extends TestCase
                 enabled: true,
                 parameters: ['buckets' => [5, 10]],
             ),
-        ]);
+        ];
+
+        // TransportConfig::$namespace exists since shopware/core 6.7.12; older versions get the legacy prefix
+        if (Feature::metricNamespaceSupported(new TransportConfig([]))) {
+            $expectedPrefix = 'test.namespace';
+            $transportConfig = (new \ReflectionClass(TransportConfig::class))->newInstanceArgs([
+                'metricsConfig' => $metricsConfig,
+                'namespace' => $expectedPrefix,
+            ]);
+        } else {
+            $expectedPrefix = OpenTelemetryMetricTransportFactory::LEGACY_NAMESPACE;
+            $transportConfig = new TransportConfig($metricsConfig);
+        }
         $transport = $transportFactory->create($transportConfig);
         $this->assertInstanceOf(OpenTelemetryMetricTransport::class, $transport);
 
@@ -70,13 +78,13 @@ class OpenTelemetryTransportWorkflowTest extends TestCase
 
         // Validate scope.name
         $this->assertArrayHasKey('name', $data['scope']);
-        $this->assertEquals('test.namespace', $data['scope']['name']);
+        $this->assertEquals(OpenTelemetryMetricTransportFactory::INSTRUMENTATION_SCOPE, $data['scope']['name']);
 
         // Validate metrics[0].name, description, and unit
         $this->assertArrayHasKey('metrics', $data['scope']);
         $this->assertArrayHasKey(0, $data['scope']['metrics']);
         $this->assertArrayHasKey('name', $data['scope']['metrics'][0]);
-        $this->assertEquals('test.namespace.testHistogram', $data['scope']['metrics'][0]['name']);
+        $this->assertEquals($expectedPrefix . '.testHistogram', $data['scope']['metrics'][0]['name']);
         $this->assertArrayHasKey('description', $data['scope']['metrics'][0]);
         $this->assertEquals('description', $data['scope']['metrics'][0]['description']);
         $this->assertArrayHasKey('unit', $data['scope']['metrics'][0]);

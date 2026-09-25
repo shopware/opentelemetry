@@ -6,7 +6,6 @@ namespace Shopware\OpenTelemetry;
 
 use Shopware\OpenTelemetry\Logging\OpenTelemetryLoggerFactory;
 use Shopware\OpenTelemetry\Messenger\MessageBusSubscriber;
-use Shopware\OpenTelemetry\Metrics\MetricNameFormatter;
 use Shopware\OpenTelemetry\Metrics\Transports\OpenTelemetryMeterProviderFactory;
 use Shopware\OpenTelemetry\Metrics\Transports\OpenTelemetryMetricTransportFactory;
 use Shopware\OpenTelemetry\Profiler\OtelProfiler;
@@ -19,7 +18,7 @@ use Symfony\Component\HttpKernel\Bundle\AbstractBundle;
 use function Symfony\Component\DependencyInjection\Loader\Configurator\service;
 
 /**
- * @phpstan-type Config array{metrics: array{enabled: bool, namespace: string}}
+ * @phpstan-type Config array{metrics: array{enabled: bool, namespace?: mixed}}
  */
 class OpenTelemetryShopwareBundle extends AbstractBundle
 {
@@ -53,8 +52,13 @@ class OpenTelemetryShopwareBundle extends AbstractBundle
                         ->booleanNode('enabled')
                             ->defaultFalse()
                         ->end()
+                        // kept without a default so that only installations that still set it get the deprecation
                         ->scalarNode('namespace')
-                            ->defaultValue('io.opentelemetry.contrib.php.shopware')
+                            ->setDeprecated(
+                                'shopware/opentelemetry',
+                                '0.2.0',
+                                'The "%path%.%node%" option is ignored and will be removed in 1.0. Replace by "shopware.telemetry.metrics.namespace" instead (Shopware 6.7.12+).',
+                            )
                         ->end()
                     ->end()
                 ->end() // metrics
@@ -70,21 +74,12 @@ class OpenTelemetryShopwareBundle extends AbstractBundle
         if (!Feature::metricsSupported()) {
             return;
         }
-        $metricsConfig = $config['metrics'];
-        $namespace = $metricsConfig['namespace'];
-
-        if ($metricsConfig['enabled']) {
-            $container->services()
-                ->set(MetricNameFormatter::class)
-                ->arg('$namespace', $namespace);
-
+        if ($config['metrics']['enabled']) {
             $container->services()
                 ->set(OpenTelemetryMeterProviderFactory::class);
 
             $container->services()
                 ->set(OpenTelemetryMetricTransportFactory::class)
-                ->arg('$namespace', $namespace)
-                ->arg('$formatter', service(MetricNameFormatter::class))
                 ->arg('$meterProviderFactory', service(OpenTelemetryMeterProviderFactory::class))
                 ->tag('shopware.metric_transport_factory');
         }

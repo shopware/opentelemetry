@@ -89,18 +89,20 @@ monolog:
 
 ## Transport metrics to OpenTelemetry
 
-You can enable OpenTelemetry metrics transport with the following configuration:
+Shopware core collects metrics through its telemetry abstraction. This bundle
+registers a transport that sends those metrics to OpenTelemetry.
+
+Enable the transport with the following configuration:
 
 ```yaml
 # config/packages/opentelemetry.yaml
 open_telemetry_shopware:
-  metrics:
-    enabled: true
-    namespace: 'io.opentelemetry.contrib.php.shopware' # or your custom namespace
+    metrics:
+        enabled: true
 ```
 
-Please note that OpenTelemetry SDK has to be configured to send metrics to the collector.
-It is configured using the same environment variables. Example configuration could look like this:
+The OpenTelemetry SDK must be configured to send metrics to the collector. It
+uses the same environment variables as tracing. Example:
 
 ```bash
 OTEL_SERVICE_NAME=shopware
@@ -110,6 +112,41 @@ OTEL_EXPORTER_OTLP_PROTOCOL=grpc
 OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4317
 OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE=delta
 ```
+
+Metrics are only emitted when the `TELEMETRY_METRICS` feature flag is enabled in
+Shopware. Since Shopware 6.7.12, `shopware.telemetry.metrics.enabled` must be
+`true` as well.
+
+### Metric names
+
+Metric names are prefixed with the namespace configured in Shopware core (`shopware.telemetry.metrics.namespace`). 
+Shopware core passes it to transports since version 6.7.12. On older versions the prefix
+`io.opentelemetry.contrib.php.shopware` is used.
+
+This bundle has no namespace option of its own. The option `open_telemetry_shopware.metrics.namespace`
+from `0.2.0-alpha` is deprecated and ignored. It will be removed in 1.0.
+
+### Flushing
+
+Since Shopware 6.7.12, core calls `flush()` on every transport at the end of each request
+and console command, and about every 60 seconds inside a running Messenger worker. This transport
+then exports the collected metrics immediately, so metrics from long-running workers
+do not wait until the worker stops.
+
+On older Shopware versions the metrics are exported once, when the PHP process shuts down.
+
+The method `OpenTelemetryMetricTransport::forceFlush()` is deprecated. Use `flush()` instead.
+
+### Shopware compatibility
+
+| Shopware version   | Behavior                                                                 |
+|--------------------|--------------------------------------------------------------------------|
+| below 6.6.7        | No metrics support in core. Tracing and log forwarding still work.        |
+| 6.6.7 to 6.7.11    | Metrics are exported when the PHP process shuts down. Metric names are prefixed with `io.opentelemetry.contrib.php.shopware`. |
+| 6.7.12 and later   | Metrics are flushed by core (see above). Metric names are prefixed with the namespace from Shopware core. |
+
+The telemetry abstraction in Shopware core is experimental until Shopware 6.8.
+This bundle stays at version `0.x` until then.
 
 ### Temporality configuration
 OpenTelemetry PHP SDK does not support storage for accumulation of metrics. As PHP processes are short-lived, 

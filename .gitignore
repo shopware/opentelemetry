@@ -2,3 +2,6 @@
 /.php-cs-fixer.cache
 /vendor
 /composer.lock
+/.phpunit.result.cache
+/coverage.xml
+/docker/.env
