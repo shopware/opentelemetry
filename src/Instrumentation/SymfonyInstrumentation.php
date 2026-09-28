@@ -13,7 +13,8 @@ use Shopware\Core\Framework\Adapter\Kernel\HttpKernel;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Throwable;
-use OpenTelemetry\SemConv\TraceAttributes;
+use OpenTelemetry\SemConv\Attributes\HttpAttributes;
+use OpenTelemetry\SemConv\Attributes\NetworkAttributes;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -61,10 +62,7 @@ final class SymfonyInstrumentation
                     ->tracer()
                     ->spanBuilder($name)
                     ->setSpanKind(($type === HttpKernelInterface::SUB_REQUEST) ? SpanKind::KIND_INTERNAL : SpanKind::KIND_SERVER)
-                    ->setAttribute(TraceAttributes::CODE_FUNCTION, $function)
-                    ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
-                    ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
-                    ->setAttribute(TraceAttributes::CODE_LINENO, $lineno);
+                    ->setAttributes(CodeLocationAttributes::from($class, $function, $filename, $lineno));
 
                 $parent = Context::getCurrent();
 
@@ -93,14 +91,12 @@ final class SymfonyInstrumentation
                         /** @psalm-suppress ArgumentTypeCoercion */
                         $span
                             ->updateName(sprintf('%s %s', $request->getMethod(), $routeName))
-                            ->setAttribute(TraceAttributes::HTTP_ROUTE, $routeName);
+                            ->setAttribute(HttpAttributes::HTTP_ROUTE, $routeName);
                     }
                 }
 
                 if (null !== $exception) {
-                    $span->recordException($exception, [
-                        TraceAttributes::EXCEPTION_ESCAPED => true,
-                    ]);
+                    $span->recordException($exception);
                     $span->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());
                 }
 
@@ -113,15 +109,15 @@ final class SymfonyInstrumentation
                 if ($response->getStatusCode() >= Response::HTTP_BAD_REQUEST) {
                     $span->setStatus(StatusCode::STATUS_ERROR);
                 }
-                $span->setAttribute(TraceAttributes::HTTP_RESPONSE_STATUS_CODE, $response->getStatusCode());
-                $span->setAttribute(TraceAttributes::NETWORK_PROTOCOL_VERSION, $response->getProtocolVersion());
+                $span->setAttribute(HttpAttributes::HTTP_RESPONSE_STATUS_CODE, $response->getStatusCode());
+                $span->setAttribute(NetworkAttributes::NETWORK_PROTOCOL_VERSION, $response->getProtocolVersion());
                 $contentLength = $response->headers->get('Content-Length');
                 /** @psalm-suppress PossiblyFalseArgument */
                 if (null === $contentLength && is_string($response->getContent())) {
                     $contentLength = strlen($response->getContent());
                 }
 
-                $span->setAttribute(TraceAttributes::HTTP_RESPONSE_BODY_SIZE, $contentLength);
+                $span->setAttribute(ShopwareAttributes::HTTP_RESPONSE_BODY_SIZE, $contentLength);
 
                 // Propagate server-timing header to response, if ServerTimingPropagator is present
                 if (class_exists('OpenTelemetry\Contrib\Propagation\ServerTiming\ServerTimingPropagator')) {
@@ -154,9 +150,7 @@ final class SymfonyInstrumentation
                 $throwable = $params[0];
 
                 Span::getCurrent()
-                    ->recordException($throwable, [
-                        TraceAttributes::EXCEPTION_ESCAPED => true,
-                    ])
+                    ->recordException($throwable)
                     ->setStatus(StatusCode::STATUS_ERROR, $throwable->getMessage());
 
                 return $params;
@@ -185,11 +179,8 @@ final class SymfonyInstrumentation
                     ->tracer()
                     ->spanBuilder($name)
                     ->setSpanKind(SpanKind::KIND_INTERNAL)
-                    ->setAttribute(TraceAttributes::CODE_FUNCTION, $function)
-                    ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
-                    ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
-                    ->setAttribute(TraceAttributes::CODE_LINENO, $lineno)
-                    ->setAttribute(TraceAttributes::EVENT_NAME, $eventClass);
+                    ->setAttributes(CodeLocationAttributes::from($class, $function, $filename, $lineno))
+                    ->setAttribute(ShopwareAttributes::SYMFONY_EVENT_CLASS, $eventClass);
 
                 $parent = Context::getCurrent();
                 $span = $builder->setParent($parent)->startSpan();

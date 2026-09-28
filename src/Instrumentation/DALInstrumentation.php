@@ -9,7 +9,6 @@ use OpenTelemetry\API\Trace\Span;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
-use OpenTelemetry\SemConv\TraceAttributes;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
 
 use function OpenTelemetry\Instrumentation\hook;
@@ -85,10 +84,7 @@ final class DALInstrumentation
                 ->tracer()
                 ->spanBuilder(sprintf('%s::%s', $repository->getDefinition()->getEntityName(), $function))
                 ->setSpanKind(SpanKind::KIND_INTERNAL)
-                ->setAttribute(TraceAttributes::CODE_FUNCTION, $function)
-                ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
-                ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
-                ->setAttribute(TraceAttributes::CODE_LINENO, $lineno);
+                ->setAttributes(CodeLocationAttributes::from($class, $function, $filename, $lineno));
 
             $parent = Context::getCurrent();
 

@@ -11,7 +11,7 @@ use OpenTelemetry\API\Trace\Span;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
-use OpenTelemetry\SemConv\TraceAttributes;
+use OpenTelemetry\SemConv\Attributes\DbAttributes;
 use Throwable;
 
 use function OpenTelemetry\Instrumentation\hook;
@@ -70,11 +70,8 @@ final class ConnectionInstrumentation
                     ->tracer()
                     ->spanBuilder($spanTitle)
                     ->setSpanKind(SpanKind::KIND_CLIENT)
-                    ->setAttribute(TraceAttributes::DB_STATEMENT, $query)
-                    ->setAttribute(TraceAttributes::CODE_FUNCTION, $function)
-                    ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
-                    ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
-                    ->setAttribute(TraceAttributes::CODE_LINENO, $lineno);
+                    ->setAttribute(DbAttributes::DB_QUERY_TEXT, $query)
+                    ->setAttributes(CodeLocationAttributes::from($class, $function, $filename, $lineno));
 
                 $parent = Context::getCurrent();
 

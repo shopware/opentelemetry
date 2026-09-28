@@ -11,7 +11,8 @@ use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
 use OpenTelemetry\Context\Propagation\ArrayAccessGetterSetter;
-use OpenTelemetry\SemConv\TraceAttributes;
+use OpenTelemetry\SemConv\Attributes\HttpAttributes;
+use OpenTelemetry\SemConv\Attributes\UrlAttributes;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Contracts\HttpClient\ResponseInterface;
 
@@ -38,12 +39,9 @@ final class HttpClientInstrumentation
                     ->tracer()
                     ->spanBuilder($method)
                     ->setSpanKind(SpanKind::KIND_CLIENT)
-                    ->setAttribute(TraceAttributes::URL_FULL, (string) $params[1])
-                    ->setAttribute(TraceAttributes::HTTP_REQUEST_METHOD, $params[0])
-                    ->setAttribute(TraceAttributes::CODE_FUNCTION, $function)
-                    ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
-                    ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
-                    ->setAttribute(TraceAttributes::CODE_LINENO, $lineno);
+                    ->setAttribute(UrlAttributes::URL_FULL, (string) $params[1])
+                    ->setAttribute(HttpAttributes::HTTP_REQUEST_METHOD, $params[0])
+                    ->setAttributes(CodeLocationAttributes::from($class, $function, $filename, $lineno));
 
                 $propagator = Globals::propagator();
                 $parent = Context::getCurrent();
@@ -72,10 +70,10 @@ final class HttpClientInstrumentation
                     $statusCode = $info['http_code'];
 
                     if (0 !== $statusCode && null !== $statusCode && $span->isRecording()) {
-                        $span->setAttribute(TraceAttributes::HTTP_RESPONSE_STATUS_CODE, $statusCode);
+                        $span->setAttribute(HttpAttributes::HTTP_RESPONSE_STATUS_CODE, $statusCode);
 
                         if ($statusCode >= 400 && $statusCode < 600) {
-                            $span->setAttribute(TraceAttributes::HTTP_RESPONSE_STATUS_CODE, $statusCode);
+                            $span->setAttribute(HttpAttributes::HTTP_RESPONSE_STATUS_CODE, $statusCode);
                             $span->setStatus(StatusCode::STATUS_ERROR);
                         }
 
@@ -105,9 +103,7 @@ final class HttpClientInstrumentation
                 $span = Span::fromContext($scope->context());
 
                 if (null !== $exception) {
-                    $span->recordException($exception, [
-                        TraceAttributes::EXCEPTION_ESCAPED => true,
-                    ]);
+                    $span->recordException($exception);
                     $span->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());
                     $span->end();
                 }

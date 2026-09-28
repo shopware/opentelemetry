@@ -11,7 +11,10 @@ use OpenTelemetry\API\Trace\SpanInterface;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
-use OpenTelemetry\SemConv\TraceAttributes;
+use OpenTelemetry\SemConv\Attributes\HttpAttributes;
+use OpenTelemetry\SemConv\Attributes\ServerAttributes;
+use OpenTelemetry\SemConv\Attributes\UrlAttributes;
+use OpenTelemetry\SemConv\Attributes\UserAgentAttributes;
 use Shopware\Core\Framework\Script\Execution\ScriptExecutor;
 use Shopware\Core\Kernel;
 use Symfony\Component\HttpFoundation\Request;
@@ -55,10 +58,7 @@ class ShopwareInstrumentation
                     ->tracer()
                     ->spanBuilder('Kernel::boot')
                     ->setSpanKind(SpanKind::KIND_INTERNAL)
-                    ->setAttribute(TraceAttributes::CODE_FUNCTION, $function)
-                    ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
-                    ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
-                    ->setAttribute(TraceAttributes::CODE_LINENO, $lineno);
+                    ->setAttributes(CodeLocationAttributes::from($class, $function, $filename, $lineno));
 
                 $parent = Context::getCurrent();
 
@@ -109,12 +109,9 @@ class ShopwareInstrumentation
                     ->tracer()
                     ->spanBuilder(sprintf('script.render: %s', $script->getName()))
                     ->setSpanKind(SpanKind::KIND_INTERNAL)
-                    ->setAttribute(TraceAttributes::CODE_FUNCTION, $function)
-                    ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
-                    ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
-                    ->setAttribute(TraceAttributes::CODE_LINENO, $lineno)
-                    ->setAttribute('script.name', $script->getName())
-                    ->setAttribute('hook.name', $hook->getName());
+                    ->setAttributes(CodeLocationAttributes::from($class, $function, $filename, $lineno))
+                    ->setAttribute(ShopwareAttributes::SCRIPT_NAME, $script->getName())
+                    ->setAttribute(ShopwareAttributes::HOOK_NAME, $hook->getName());
 
                 $span = $builder->setParent(Context::getCurrent())->startSpan();
                 Context::storage()->attach($span->storeInContext(Context::getCurrent()));
@@ -170,24 +167,21 @@ class ShopwareInstrumentation
                     ->tracer()
                     ->spanBuilder(sprintf('%s %s', $method, $path))
                     ->setSpanKind(SpanKind::KIND_SERVER)
-                    ->setAttribute(TraceAttributes::CODE_FUNCTION, $function)
-                    ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
-                    ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
-                    ->setAttribute(TraceAttributes::CODE_LINENO, $lineno);
+                    ->setAttributes(CodeLocationAttributes::from($class, $function, $filename, $lineno));
 
                 $parent = Context::getCurrent();
                 if ($request) {
                     $parent = Globals::propagator()->extract($request, RequestPropagationGetter::instance());
                     $span = $builder
                         ->setParent($parent)
-                        ->setAttribute(TraceAttributes::URL_FULL, $request->getUri())
-                        ->setAttribute(TraceAttributes::HTTP_REQUEST_METHOD, $request->getMethod())
-                        ->setAttribute(TraceAttributes::HTTP_REQUEST_BODY_SIZE, $request->headers->get('Content-Length'))
-                        ->setAttribute(TraceAttributes::URL_SCHEME, $request->getScheme())
-                        ->setAttribute(TraceAttributes::URL_PATH, $request->getPathInfo())
-                        ->setAttribute(TraceAttributes::USER_AGENT_ORIGINAL, $request->headers->get('User-Agent'))
-                        ->setAttribute(TraceAttributes::SERVER_ADDRESS, $request->getHost())
-                        ->setAttribute(TraceAttributes::SERVER_PORT, $request->getPort())
+                        ->setAttribute(UrlAttributes::URL_FULL, $request->getUri())
+                        ->setAttribute(HttpAttributes::HTTP_REQUEST_METHOD, $request->getMethod())
+                        ->setAttribute(ShopwareAttributes::HTTP_REQUEST_BODY_SIZE, $request->headers->get('Content-Length'))
+                        ->setAttribute(UrlAttributes::URL_SCHEME, $request->getScheme())
+                        ->setAttribute(UrlAttributes::URL_PATH, $request->getPathInfo())
+                        ->setAttribute(UserAgentAttributes::USER_AGENT_ORIGINAL, $request->headers->get('User-Agent'))
+                        ->setAttribute(ServerAttributes::SERVER_ADDRESS, $request->getHost())
+                        ->setAttribute(ServerAttributes::SERVER_PORT, $request->getPort())
                         ->startSpan();
                     $request->attributes->set(SpanInterface::class, $span);
                 } else {

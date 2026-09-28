@@ -10,7 +10,7 @@ use OpenTelemetry\API\Trace\Span;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
-use OpenTelemetry\SemConv\TraceAttributes;
+use Shopware\OpenTelemetry\Instrumentation\ShopwareAttributes;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\Messenger\Event\SendMessageToTransportsEvent;
 use Symfony\Component\Messenger\Event\WorkerMessageFailedEvent;
@@ -43,11 +43,11 @@ class MessageBusSubscriber implements EventSubscriberInterface
 
         $newContext = Globals::propagator()->extract($stamps[0], EnvelopePropagator::instance());
 
-        $instrumentation = new CachedInstrumentation('io.opentelemetry.contrib.php.message', schemaUrl: TraceAttributes::SCHEMA_URL);
+        $instrumentation = new CachedInstrumentation('io.opentelemetry.contrib.php.message');
         $span = $instrumentation->tracer()->spanBuilder('Handle message: ' . get_class($event->getEnvelope()->getMessage()))
             ->setParent($newContext)
             ->setSpanKind(SpanKind::KIND_CONSUMER)
-            ->setAttribute(TraceAttributes::MESSAGE_TYPE, get_class($event->getEnvelope()->getMessage()))
+            ->setAttribute(ShopwareAttributes::SYMFONY_MESSENGER_MESSAGE_CLASS, get_class($event->getEnvelope()->getMessage()))
             ->startSpan();
 
         Context::storage()->attach($span->storeInContext($newContext));

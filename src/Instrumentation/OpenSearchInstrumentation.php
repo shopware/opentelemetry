@@ -12,7 +12,6 @@ use OpenTelemetry\API\Trace\Span;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
-use OpenTelemetry\SemConv\TraceAttributes;
 use Throwable;
 
 use function OpenTelemetry\Instrumentation\hook;
@@ -54,10 +53,7 @@ class OpenSearchInstrumentation
                         ->tracer()
                         ->spanBuilder(sprintf('OpenSearch::%s index: %s', $function, $index))
                         ->setSpanKind(SpanKind::KIND_CLIENT)
-                        ->setAttribute(TraceAttributes::CODE_FUNCTION, $function)
-                        ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
-                        ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
-                        ->setAttribute(TraceAttributes::CODE_LINENO, $lineno);
+                        ->setAttributes(CodeLocationAttributes::from($class, $function, $filename, $lineno));
 
                     if (isset($params[0]['body'])) {
                         $builder->setAttribute(self::TRACE_ATTRIBUTE_SIZE, strlen(serialize($params[0]['body'])));
@@ -87,7 +83,7 @@ class OpenSearchInstrumentation
         $scope->detach();
         $span = Span::fromContext($scope->context());
         if ($exception) {
-            $span->recordException($exception, [TraceAttributes::EXCEPTION_ESCAPED => true]);
+            $span->recordException($exception);
             $span->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());
         }
 
@@ -114,10 +110,7 @@ class OpenSearchInstrumentation
                     ->tracer()
                     ->spanBuilder(sprintf('OpenSearch::%s index: %s', get_class($endpoint), $endpoint->getIndex()))
                     ->setSpanKind(SpanKind::KIND_CLIENT)
-                    ->setAttribute(TraceAttributes::CODE_FUNCTION, $function)
-                    ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
-                    ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
-                    ->setAttribute(TraceAttributes::CODE_LINENO, $lineno);
+                    ->setAttributes(CodeLocationAttributes::from($class, $function, $filename, $lineno));
 
                 $parent = Context::getCurrent();
 

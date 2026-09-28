@@ -10,6 +10,7 @@ use OpenTelemetry\API\Trace\TracerInterface;
 use OpenTelemetry\Context\Context;
 use OpenTelemetry\Context\ScopeInterface;
 use Shopware\Core\Profiling\Integration\ProfilerInterface;
+use Shopware\OpenTelemetry\Instrumentation\ShopwareAttributes;
 
 class OtelProfiler implements ProfilerInterface
 {
@@ -32,7 +33,7 @@ class OtelProfiler implements ProfilerInterface
         $tracer = $this->getTracer();
 
         $builder = $tracer->spanBuilder($title)
-            ->setAttribute('category', $category);
+            ->setAttribute(ShopwareAttributes::PROFILER_CATEGORY, $category);
 
         $parent = Context::getCurrent();
         $builder = $builder->setParent($parent);
