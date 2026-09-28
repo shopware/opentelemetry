@@ -20,9 +20,9 @@ readonly class OpenTelemetryMetricTransport implements MetricTransportInterface
         // careful: if link to meterProvider is removed, SDK will not transmit metrics (it uses weak references)
         private MeterProviderInterface $meterProvider,
         private MetricNameFormatter $formatter,
-        private string $namespace,
+        private string $instrumentationScope,
     ) {
-        $this->meter = $this->meterProvider->getMeter($this->namespace);
+        $this->meter = $this->meterProvider->getMeter($this->instrumentationScope);
     }
 
 
@@ -54,10 +54,22 @@ readonly class OpenTelemetryMetricTransport implements MetricTransportInterface
         }
     }
 
+    public function flush(): void
+    {
+        if ($this->meterProvider instanceof \OpenTelemetry\SDK\Metrics\MeterProviderInterface) {
+            $this->meterProvider->forceFlush();
+        }
+    }
+
+    /**
+     * @deprecated - use flush instead
+     */
     public function forceFlush(): bool
     {
         if ($this->meterProvider instanceof \OpenTelemetry\SDK\Metrics\MeterProviderInterface) {
-            return $this->meterProvider->forceFlush();
+            $this->flush();
+
+            return true;
         }
 
         return false;

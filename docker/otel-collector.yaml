@@ -6,9 +6,8 @@ receivers:
       http:
         endpoint: 0.0.0.0:4318
 exporters:
-  logging:
   debug:
-  otlp/tempo:
+  otlp_grpc/tempo:
     endpoint: tempo:4317
     tls:
       insecure: true
@@ -17,8 +16,10 @@ exporters:
   #   endpoint: dd-agent:4317
   #   tls:
   #     insecure: true
-  loki:
-    endpoint: http://loki:3100/loki/api/v1/push
+  # Loki removed the legacy push API exporter from the collector; use native OTLP.
+  # https://grafana.com/docs/loki/latest/send-data/otel/
+  otlp_http/loki:
+    endpoint: http://loki:3100/otlp
   prometheus:
     endpoint: 0.0.0.0:8889
     # adding labels to the metrics
@@ -30,23 +31,22 @@ exporters:
     metric_expiration: 180m
   # exporter to datadog using datadog api
   # for configuration example see https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/exporter/datadogexporter/examples/collector.yaml
-  datadog:
-    api:
-      site: ${env:DD_SITE}
-      key: ${env:DD_API_KEY}
-    metrics:
-      resource_attributes_as_tags: true
-      histograms:
-        mode: counters
-        send_aggregation_metrics: true
-    traces:
-      # trace_buffer: 10
+  # datadog:
+  #   api:
+  #     site: ${env:DD_SITE}
+  #     key: ${env:DD_API_KEY}
+  #   metrics:
+  #     resource_attributes_as_tags: true
+  #     histograms:
+  #       mode: counters
+  #       send_aggregation_metrics: true
+  #   traces:
+  #     # trace_buffer: 10
 
 processors:
   batch:
   deltatocumulative:
     max_stale: 60m
-    max_streams: 0
 
 
 service:
@@ -58,15 +58,15 @@ service:
       receivers: [otlp]
       # if you want to export through datadog agent, not to api directly, use otlp/datadog instead of datadog
       # in such case otlp/datadog exporter have to be enabled in exporters section
-      exporters: [otlp/tempo, debug, datadog]
+      exporters: [otlp_grpc/tempo, debug]
     logs:
       receivers: [otlp]
-      exporters: [loki, logging]
-    metrics/delta:
-      receivers: [otlp]
-      # if you want to export through datadog agent, not to api directly, use otlp/datadog instead of datadog
-      # in such case otlp/datadog exporter have to be enabled in exporters section
-      exporters: [debug, datadog]
+      exporters: [otlp_http/loki, debug]
+    # metrics/delta:
+    #   receivers: [otlp]
+    #   # if you want to export through datadog agent, not to api directly, use otlp/datadog instead of datadog
+    #   # in such case otlp/datadog exporter have to be enabled in exporters section
+    #   exporters: [debug, datadog]
     metrics/cumulative:
       receivers: [otlp]
       processors: [deltatocumulative]

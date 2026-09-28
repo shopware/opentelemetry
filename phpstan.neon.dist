@@ -7,3 +7,10 @@ parameters:
     reportUnmatchedIgnoredErrors: true
     excludePaths:
     ignoreErrors:
+        # Feature::metricNamespaceSupported() asserts TransportConfig::$namespace, which exists in
+        # shopware/core >= 6.7.12 only. Against a newer core the assertion is redundant, against an
+        # older core it is required, so the report is ignored without being mandatory.
+        -
+            message: '#^Asserted type .*TransportConfig.* does not narrow down the type\.$#'
+            path: src/Feature.php
+            reportUnmatched: false

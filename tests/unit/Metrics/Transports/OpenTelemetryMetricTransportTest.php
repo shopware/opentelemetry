@@ -159,13 +159,13 @@ class OpenTelemetryMetricTransportTest extends TestCase
         $this->createTransport($namespace)->emit($metric);
     }
 
-    public function testForceFlush(): void
+    public function testFlush(): void
     {
         $meterProviderMock = $this->createMock(\OpenTelemetry\SDK\Metrics\MeterProviderInterface::class);
         $meterProviderMock->expects(static::once())
             ->method('forceFlush')->willReturn(true);
         $transport = (new OpenTelemetryMetricTransport($meterProviderMock, new MetricNameFormatter('namespace'), 'namespace'));
-        static::assertTrue($transport->forceFlush());
+        $transport->flush();
     }
 
     /**
