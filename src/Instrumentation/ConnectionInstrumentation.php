@@ -103,8 +103,9 @@ final class ConnectionInstrumentation
         );
     }
 
+
     /**
-     * @return array<string, mixed>|null
+     * @return array{function?: string, line?: int, file?: string, class?: class-string}|null
      */
     private static function getBacktrace(): ?array
     {
