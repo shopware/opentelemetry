@@ -29,12 +29,12 @@ class ShopwareAttributesTest extends TestCase
     #[DataProvider('providePinnedIncubatingAttributes')]
     public function testPinnedAttributeMatchesIncubatingConvention(string $constant, string $pinned): void
     {
-        $incubating = new \ReflectionClass(HttpIncubatingAttributes::class);
+        $incubating = HttpIncubatingAttributes::class . '::' . $constant;
 
         $this->assertTrue(
-            $incubating->hasConstant($constant),
-            sprintf('HttpIncubatingAttributes::%s no longer exists, check the semantic conventions for its replacement', $constant),
+            \defined($incubating),
+            sprintf('%s no longer exists, check the semantic conventions for its replacement', $incubating),
         );
-        $this->assertSame($pinned, $incubating->getConstant($constant));
+        $this->assertSame($pinned, \constant($incubating));
     }
 }
