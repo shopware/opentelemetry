@@ -9,7 +9,6 @@ use OpenTelemetry\API\Trace\Span;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
-use OpenTelemetry\SemConv\TraceAttributes;
 use Symfony\Component\Console\Application;
 use Throwable;
 
@@ -34,10 +33,7 @@ class CommandInstrumentation
                     ->tracer()
                     ->spanBuilder(sprintf('bin/console %s', $params[0]->getName()))
                     ->setSpanKind(SpanKind::KIND_INTERNAL)
-                    ->setAttribute(TraceAttributes::CODE_FUNCTION, $function)
-                    ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
-                    ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
-                    ->setAttribute(TraceAttributes::CODE_LINENO, $lineno);
+                    ->setAttributes(CodeLocationAttributes::from($class, $function, $filename, $lineno));
 
                 $parent = Context::getCurrent();
 
